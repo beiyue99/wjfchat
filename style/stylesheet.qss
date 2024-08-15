@@ -1,0 +1,7 @@
+#LoginDialog,#RegistDialog{
+background-color:rgb(255,255,255)
+}
+
+#user_Label,#pass_Label{
+color:black;
+}
