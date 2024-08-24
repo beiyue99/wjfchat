@@ -8,7 +8,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     ui->setupUi(this);
     // 设置窗口图标
-    setWindowIcon(QIcon(":/icon.png"));
+    setWindowIcon(QIcon(":/res/icon.png"));
     _login_dlg=new LoginDialog(this);
     setCentralWidget(_login_dlg);
 //    _login_dlg->show();

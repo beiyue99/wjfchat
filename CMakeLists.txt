@@ -11,11 +11,11 @@ set(CMAKE_AUTORCC ON)
 
 
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 
-find_package(Qt5 COMPONENTS Widgets REQUIRED)
+find_package(Qt5 COMPONENTS Widgets Network REQUIRED)
 
 
 # 添加资源文件
@@ -27,7 +27,17 @@ add_executable(wfjchat
   mainwindow.cpp
   logindialog.cpp
   registdialog.cpp
+  global.cpp
+  httpmgr.cpp
+
   mainwindow.h
+  logindialog.h
+  registdialog.h
+  global.h
+  singleton.h
+  httpmgr.h
+
+
   mainwindow.ui
   logindialog.ui
   registdialog.ui
@@ -35,4 +45,4 @@ add_executable(wfjchat
 )
 
 
-target_link_libraries(wfjchat PRIVATE Qt5::Widgets)
+target_link_libraries(wfjchat PRIVATE Qt5::Widgets Qt5::Network)
