@@ -20,7 +20,7 @@ void HttpMgr::PostHttpReq(QUrl url, QJsonObject json, ReqId req_id, Modules mod)
     auto self =shared_from_this();  //获取一个 shared_ptr 指向当前对象
     QNetworkReply* reply=_manager.post(request,data);
     //lambda表达式会用到当前类的数据，所以要保证触发这个回调之前这个httpmgr对象不能被删除
-    connect(reply,&QNetworkReply::finished,[self=std::move(self),reply,req_id,mod](){ //尝试使用move
+    connect(reply,&QNetworkReply::finished,[self=std::move(self),reply,req_id,mod](){
         //处理错误情况
         if(reply->error()!=QNetworkReply::NoError){
             qDebug()<<reply->errorString();

@@ -1,0 +1,21 @@
+**/.vs/
+**/.vscode/
+**/web-http/
+**/build-*/
+**/Debug/
+**/Release/
+**/x64/
+
+
+**/*vcxproj*
+**/*error.log*
+**/.sln*
+a.out   #忽略此文件
+**/a.out  #忽略所有目录下的此文件
+
+**/*user*     #忽略项目中所有包含 user 字符串的文件或目录
+**/*.pro.user     #忽略所有目录下的 .pro.user文件
+**/*gch*
+
+
+build-*/   #忽略所有带有bulid-的目录

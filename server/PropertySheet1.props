@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <IncludePath>D:\各类软件缓存\库\boost库\boost_1_82_0;$(IncludePath)</IncludePath>
+    <LibraryPath>D:\各类软件缓存\库\boost库\boost_1_82_0\stage\lib;D:\各类软件缓存\库\jsoncpp库\JSON\json\lib;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>D:\各类软件缓存\库\jsoncpp库\JSON\json\include</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>D:\各类软件缓存\库\jsoncpp库\JSON\json\include</AdditionalLibraryDirectories>
+      <AdditionalDependencies>jsoncpp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup />
+</Project>
