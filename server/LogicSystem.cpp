@@ -3,6 +3,8 @@
 LogicSystem::~LogicSystem()
 {
 }
+
+//接收到一个 HTTP GET 请求时，根据请求的路径 (path) 查找并调用相应的处理器函数。
 bool LogicSystem::HandleGet(std::string path , std::shared_ptr<HttpConnection> con)
 {
     if (_get_handlers.find(path) == _get_handlers.end()) {
@@ -12,14 +14,75 @@ bool LogicSystem::HandleGet(std::string path , std::shared_ptr<HttpConnection> c
     return true;
 }
 
+bool LogicSystem::HandlePost(std::string path, std::shared_ptr<HttpConnection> con) {
+    if (_post_handlers.find(path) == _post_handlers.end()) {
+        return false;
+    }
+
+    _post_handlers[path](con);
+    return true;
+}
+
+//注册一个用于处理特定 URL 路径的 HTTP GET 请求处理器
 void LogicSystem::RegGet(std::string url, HttpHandler handler)
 {
     _get_handlers.insert(make_pair(url, handler));
 }
 
+
+//注册一个用于处理特定 URL 路径的 HTTP POST 请求处理器
+void LogicSystem::RegPost(std::string url, HttpHandler handler)
+{
+    _post_handlers.insert(make_pair(url, handler));
+}
+
 LogicSystem::LogicSystem()
 {
     RegGet("/get_test", [](std::shared_ptr<HttpConnection> connection) {
-        beast::ostream(connection->_response.body()) << "receive get_test req";
+        beast::ostream(connection->_response.body()) << "receive get_test req\r\n";
+        int i = 0;
+        for (auto& elem : connection->_get_params) {
+            i++;
+            beast::ostream(connection->_response.body()) << "param" << i << " key is " << elem.first;
+            beast::ostream(connection->_response.body()) << ", " << " value is " << elem.second << std::endl;
+        }
+        });
+    RegPost("/get_varifycode", [](std::shared_ptr<HttpConnection> connection) {
+        //将 HTTP 请求中的消息体（body）转换为一个 std::string 类型的字符串
+        auto body_str = boost::beast::buffers_to_string(connection->_request.body().data());
+        std::cout << "receive body is " << body_str << std::endl;
+        connection->_response.set(http::field::content_type, "text/json");
+        //给对方回应的响应的 Content-Type 头部字段，表明响应的内容类型为 JSON 格式
+        Json::Value root;  // JSON 数据的基本类型
+        Json::Reader reader;//用于从字符串或流中读取 JSON 数据并将其解析为 Json::Value 对象。
+        Json::Value src_root;
+        bool parse_success = reader.parse(body_str, src_root);
+        if (!parse_success) {
+            std::cout << "Failed to parse JSON data!" << std::endl;
+            root["error"] = ErrorCodes::Error_Json;
+            std::string jsonstr = root.toStyledString();
+            //用于将 Json::Value 对象转换为格式化的 JSON 字符串。这种格式化的字符串是具有可读性的
+            beast::ostream(connection->_response.body()) << jsonstr;
+            return true;
+        }
+
+        if (!src_root.isMember("email")) {
+            std::cout << "Failed to parse JSON data!" << std::endl;
+            root["error"] = ErrorCodes::Error_Json;
+            std::string jsonstr = root.toStyledString();
+            beast::ostream(connection->_response.body()) << jsonstr;
+            return true;
+        }
+
+
+
+
+        auto email = src_root["email"].asString();
+        std::cout << "email is " << email << std::endl;
+        root["error"] = 0;
+        root["email"] = src_root["email"];
+        std::string jsonstr = root.toStyledString();
+        beast::ostream(connection->_response.body()) << jsonstr;
+        return true;
         });
 }
