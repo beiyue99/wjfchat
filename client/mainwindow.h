@@ -17,12 +17,12 @@ public:
     ~MainWindow();
 public slots:
 
-    void  SlotSwitchReg ();
+    void  SlotSwitchReg ();   //切换注册页面的槽函数
 
 
 private:
     Ui::MainWindow *ui;
-    LoginDialog *_login_dlg;
-    RegistDialog* _reg_dlg;
+    LoginDialog *_login_dlg;  //登录窗口
+    RegistDialog* _reg_dlg;   //注册窗口
 };
 #endif // MAINWINDOW_H

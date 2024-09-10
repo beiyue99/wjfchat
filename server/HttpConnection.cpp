@@ -15,8 +15,8 @@ void HttpConnection::Start() {
 				return;
 			}
 			boost::ignore_unused(bytes_transferred);//忽略参数未使用的警告
-			self->HandleReq();//成功读取后，调用 self->HandleReq(); 处理请求。
-			self->CheckDeadline();
+			self->HandleReq();   //处理请求。
+			self->CheckDeadline();  //检查当前连接的超时时间
 		}
 		catch (std::exception& exp) {
 			std::cout << "exception is " << exp.what() << std::endl;
@@ -24,11 +24,14 @@ void HttpConnection::Start() {
 		});
 }
 
+
+
+
+//关于字符相关函数 ---------------------------------begin
 unsigned char ToHex(unsigned char x)
 {
 	return  x > 9 ? x + 55 : x + 48;
 }
-
 
 unsigned char FromHex(unsigned char x)
 {
@@ -87,7 +90,6 @@ std::string UrlDecode(const std::string& str)
 	return strTemp;
 }
 
-
 void HttpConnection::PreParseGetParam() {
 	// 提取 URI  
 	auto uri = _request.target();
@@ -123,6 +125,7 @@ void HttpConnection::PreParseGetParam() {
 		}
 	}
 }
+//关于字符相关函数 ---------------------------------end
 
 
 void HttpConnection::HandleReq() {
@@ -130,7 +133,8 @@ void HttpConnection::HandleReq() {
 	_response.keep_alive(false);
 	if (_request.method() == http::verb::get) {  //如果是get请求
 		PreParseGetParam();
-		bool success = LogicSystem::GetInstance()->HandleGet(_get_url, shared_from_this());
+		const bool success = LogicSystem::GetInstance()->HandleGet(_get_url, shared_from_this());
+		//_get_url在解析请求时被设置        _get_url替换为_request.target()也可以
 		if (!success) {
 			_response.result(http::status::not_found);
 			_response.set(http::field::content_type, "text/plain");
@@ -144,7 +148,9 @@ void HttpConnection::HandleReq() {
 		return;
 	}
 	if (_request.method() == http::verb::post) {
-		bool success = LogicSystem::GetInstance()->HandlePost(_request.target(), shared_from_this());
+		const bool success = LogicSystem::GetInstance()->HandlePost(_request.target(), shared_from_this());
+		//_request.target() 返回的是 HTTP 请求的目标 URI（统一资源标识符），
+		// 也就是客户端发送请求时指定的资源路径。
 		if (!success) {
 			_response.result(http::status::not_found);
 			_response.set(http::field::content_type, "text/plain");
@@ -155,7 +161,7 @@ void HttpConnection::HandleReq() {
 
 		_response.result(http::status::ok);
 		_response.set(http::field::server, "GateServer");
-		WriteResponse();
+		WriteResponse();  //发送response
 		return;
 	}
 }

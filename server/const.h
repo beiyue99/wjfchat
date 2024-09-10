@@ -18,8 +18,9 @@ namespace http = beast::http;
 namespace net = boost::asio;
 using tcp = boost::asio::ip::tcp;
 
+//´íÎóÂë
 enum ErrorCodes {
-	Success = 0,
+	Success = 0,          
 	Error_Json = 1001,
 	RPCFailed = 1002,
 };

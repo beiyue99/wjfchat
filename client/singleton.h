@@ -2,6 +2,11 @@
 #define SINGLETON_H
 #include"global.h"
 
+
+
+//单例模板类，会根据模板参数实例出不同的单例
+
+
 template <typename T>
 class Singleton
 {

@@ -7,7 +7,8 @@ _acceptor(ioc,tcp::endpoint(tcp::v4(),port)),_socket(ioc){
 
 void CServer::Start(){
 	auto self = shared_from_this();
-	_acceptor.async_accept(_socket, [self=std::move(self)](beast::error_code ec) {  //接收器的异步接收操作函数
+	_acceptor.async_accept(_socket, [self=std::move(self)](beast::error_code ec) {  
+		//_acceptor.async_accept 让服务器开始监听客户端连接，这是一种异步操作，完成后会调用回调函数
 		try {
 			//出错就放弃这个连接，继续监听其他连接
 			if (ec) {

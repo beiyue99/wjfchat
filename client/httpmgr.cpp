@@ -10,6 +10,8 @@ HttpMgr::HttpMgr()
     connect(this,&HttpMgr::sig_http_finish,this,&HttpMgr::slot_http_finish);
 }
 
+
+
 void HttpMgr::PostHttpReq(QUrl url, QJsonObject json, ReqId req_id, Modules mod)
 {
     QByteArray data=QJsonDocument(json).toJson();
@@ -18,7 +20,7 @@ void HttpMgr::PostHttpReq(QUrl url, QJsonObject json, ReqId req_id, Modules mod)
     request.setHeader(QNetworkRequest::ContentTypeHeader,"application/json");
     request.setHeader(QNetworkRequest::ContentLengthHeader,QByteArray::number(data.length()));
     auto self =shared_from_this();  //获取一个 shared_ptr 指向当前对象
-    QNetworkReply* reply=_manager.post(request,data);
+    QNetworkReply* reply=_manager.post(request,data); //发送post请求，携带的数据是json对象
     //lambda表达式会用到当前类的数据，所以要保证触发这个回调之前这个httpmgr对象不能被删除
     connect(reply,&QNetworkReply::finished,[self=std::move(self),reply,req_id,mod](){
         //处理错误情况

@@ -4,7 +4,7 @@ LogicSystem::~LogicSystem()
 {
 }
 
-//接收到一个 HTTP GET 请求时，根据请求的路径 (path) 查找并调用相应的处理器函数。
+
 bool LogicSystem::HandleGet(std::string path , std::shared_ptr<HttpConnection> con)
 {
     if (_get_handlers.find(path) == _get_handlers.end()) {
@@ -23,14 +23,12 @@ bool LogicSystem::HandlePost(std::string path, std::shared_ptr<HttpConnection> c
     return true;
 }
 
-//注册一个用于处理特定 URL 路径的 HTTP GET 请求处理器
 void LogicSystem::RegGet(std::string url, HttpHandler handler)
 {
     _get_handlers.insert(make_pair(url, handler));
 }
 
 
-//注册一个用于处理特定 URL 路径的 HTTP POST 请求处理器
 void LogicSystem::RegPost(std::string url, HttpHandler handler)
 {
     _post_handlers.insert(make_pair(url, handler));
@@ -40,6 +38,7 @@ LogicSystem::LogicSystem()
 {
     RegGet("/get_test", [](std::shared_ptr<HttpConnection> connection) {
         beast::ostream(connection->_response.body()) << "receive get_test req\r\n";
+        //使用 beast::ostream 将响应写入到 HTTP 响应体中
         int i = 0;
         for (auto& elem : connection->_get_params) {
             i++;
@@ -73,9 +72,6 @@ LogicSystem::LogicSystem()
             beast::ostream(connection->_response.body()) << jsonstr;
             return true;
         }
-
-
-
 
         auto email = src_root["email"].asString();
         std::cout << "email is " << email << std::endl;

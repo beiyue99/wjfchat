@@ -9,6 +9,13 @@
 #include<mutex>
 #include<QByteArray>
 #include<QNetworkReply>
+#include<QJsonObject>
+#include<QDir>
+#include<QSettings>
+
+
+
+
 extern std::function<void(QWidget*)>repolish;
 //    用来刷新qss
 enum ReqId{
@@ -16,10 +23,12 @@ enum ReqId{
     ID_REG_USER=1002,//注册用户
 };
 
+//定义请求的模块
 enum Modules{
     REGISTERMOD=0,  //注册模块
 };
 
+//错误码
 enum ErrorCodes{
     SUCCESS=0,
     ERR_JSON=1, //json解析失败
@@ -27,6 +36,9 @@ enum ErrorCodes{
 };
 
 
+
+//访问gate_url的前缀
+extern QString gate_url_prefix;
 
 
 #endif // GLOBAL_H

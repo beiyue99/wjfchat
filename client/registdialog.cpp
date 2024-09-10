@@ -30,6 +30,12 @@ void RegistDialog::on_getCode_btn_clicked()
     if(match)
     {
         //发送http验证码
+        QJsonObject json_obj;
+                json_obj["email"] = email;
+
+                HttpMgr::GetInstance()->PostHttpReq(QUrl(gate_url_prefix+"/get_varifycode"),
+                                    json_obj, ReqId::ID_GET_VARIFY_CODE,Modules::REGISTERMOD);
+
     }
     else
     {
@@ -52,11 +58,11 @@ void RegistDialog::slot_reg_mod_finish(ReqId id, QString res, ErrorCodes err)
         return;
     }
     if(jsonDoc.isObject()){
-        showTip(tr("json解析失败！"),false);
+        showTip(tr("验证码已发送到邮箱，注意查收！"),true);
         return;
     }
     //jsonDoc.object();//转化为json对象
-    _handlers[id](jsonDoc.object());
+    _handlers[id](jsonDoc.object());  // 将解析的 JSON 对象交给相应的处理器
 }
 
 void RegistDialog::initHttpHandlers()

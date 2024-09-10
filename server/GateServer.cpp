@@ -17,11 +17,11 @@ int main()
 			if (error) {
 				return;
 			}
-			ioc.stop();
+			ioc.stop();  //捕捉到信号时停止 io_context
 		});
-		std::make_shared<CServer>(ioc, port)->Start();
+		std::make_shared<CServer>(ioc, port)->Start(); //异步监听
 		std::cout << "GateServer is listen on port:" << port<<std::endl;
-		ioc.run();
+		ioc.run();  //启动事件循环并处理异步操作
 	}
 	catch (std::exception const& e) {
 		std::cerr << "Error:" << e.what() << std::endl;
