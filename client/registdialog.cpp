@@ -75,10 +75,11 @@ void RegistDialog::slot_reg_mod_finish(ReqId id, QString res, ErrorCodes err)
 }
 
 
-//注册消息处理器(根据请求id)
+
+//根据请求Id，注册相关处理函数
 void RegistDialog::initHttpHandlers()
 {
-    // 注册请求验证码的消息处理器
+    //注册请求验证码的消息处理器
     _handlers.insert(ReqId::ID_GET_VARIFY_CODE, [this](const QJsonObject& jsonObj){
 
         // 从回包 JSON 对象中提取 "error" 字段的值，并将其转换为整型
@@ -89,11 +90,13 @@ void RegistDialog::initHttpHandlers()
             return;
         }
 
-        // 从回包中提取 "email" 字段的值，并将其转换为字符串
+        // 从回包中提取 "email" 字段的值，并打印
         auto email = jsonObj["email"].toString();
+        qDebug() << "email is" << email;
 
         // 显示成功提示信息，使用 showTip 函数并传入提示信息和 true（表示成功状态）
         showTip(tr("验证码已经发送至邮箱，注意查收"), true);
+
 
     });
 }
