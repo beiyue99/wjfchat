@@ -23,9 +23,7 @@ public:
 
 
      void PostHttpReq(QUrl url,QJsonObject json,ReqId req_id,Modules mod);
-     //发送一个 HTTP POST 请求，将 JSON 数据发送到指定的 URL，然后处理服务器的响应结果（包括成功和失败情况），
-     //并通过 sig_http_finish 信号通知其他模块请求的结果。
-
+     //发送一个POST请求，将JSON数据发送到指定的URL，然后处理服务器的响应结果（包括成功和失败情况），
      //QUrl url: 请求的目标 URL
      //QJsonObject json: 要发送的 JSON 数据，将会作为 POST 请求的请求体。
      //ReqId req_id: 请求的唯一标识符，用于在请求完成后追踪请求结果。

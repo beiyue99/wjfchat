@@ -15,9 +15,11 @@
 
 
 
-
-extern std::function<void(QWidget*)>repolish;
 //    用来刷新qss
+extern std::function<void(QWidget*)>repolish;
+
+
+//请求类型
 enum ReqId{
     ID_GET_VARIFY_CODE=1001,//获取验证码
     ID_REG_USER=1002,//注册用户

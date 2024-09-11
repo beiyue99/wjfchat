@@ -1,15 +1,22 @@
-#LoginDialog,#RegistDialog{
-background-color:rgb(255,255,255)
+
+
+/* 设置 LoginDialog 和 RegistDialog 的背景颜色为白色 */
+#LoginDialog, #RegistDialog {
+    background-color: rgb(255, 255, 255);  /* 纯白色背景 */
 }
 
-#user_Label,#pass_Label{
-color:black;
+/* 设置 user_Label 和 pass_Label 的文字颜色为黑色 */
+#user_Label, #pass_Label {
+    color: black;  /* 黑色字体 */
 }
 
-#err_tip[state='normal']{
-color:green;
+/* 设置 err_tip 在 normal 状态下的样式 */
+#err_tip[state='normal'] {
+    color: green;  /* 正常状态下，错误提示文字为绿色 */
 }
-#err_tip[state='err']{
-color:red;
+
+/* 设置 err_tip 在 err 状态下的样式 */
+#err_tip[state='err'] {
+    color: red;  /* 错误状态下，错误提示文字为红色 */
 }
 
