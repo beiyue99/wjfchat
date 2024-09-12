@@ -7,6 +7,7 @@
 //调用HttpConnection的start函数，就是异步读，
 // 读完后（将数据存入 _buffer，解析后存入 _request）调用HandleReq处理请求
 //根据get post进行不同的处理（通过LogicSystem类注册了相应的请求以及对应的处理函数）
+//如果是获取验证码的post请求，服务器就会与验证服务发请求，调用grpc的GetVarifyCode方法获取验证码
 
 
 
