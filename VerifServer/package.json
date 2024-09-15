@@ -1,9 +1,9 @@
 {
-  "name": "verifserver",
+  "name": "varifserver",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "serve": "node server.js"
   },
   "author": "",
   "license": "ISC",
@@ -11,6 +11,7 @@
   "dependencies": {
     "@grpc/grpc-js": "^1.11.2",
     "@grpc/proto-loader": "^0.7.13",
-    "nodemailer": "^6.9.15"
+    "nodemailer": "^6.9.15",
+    "uuid": "^10.0.0"
   }
 }

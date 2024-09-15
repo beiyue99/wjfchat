@@ -35,9 +35,11 @@ public:
         Status status = stub_->GetVarifyCode(&context, request, &reply);
 
         if (status.ok()) {
+            
             return reply;
         }
         else {
+            std::cout << status.error_code() << std::endl;
             reply.set_error(ErrorCodes::RPCFailed);
             return reply;
         }

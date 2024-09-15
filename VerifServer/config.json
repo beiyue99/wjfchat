@@ -1,6 +1,22 @@
 {
-    "email": {
-      "user": "18137575298@163.com",
-      "pass": "VDUXYFJGRZSLAYHJ"
+   "_comment": "/user是我们得邮箱地址，pass是邮箱授权码",
+  "email": {
+    "user": "18137575298@163.com",
+    "pass": "SBZKJCCTRNPIHZPY"
+  },
+    
+    "mysql":{
+      "host": "172.25.212.215",
+      "port": 3306,
+      "passwd": 123456
+    },
+
+    "redis":{
+      "host": "172.25.212.215",
+      "port": 6380,
+      "passwd": 123456
     }
+
+
 }
+

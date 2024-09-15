@@ -84,6 +84,10 @@ void RegistDialog::initHttpHandlers()
 
         // 从回包 JSON 对象中提取 "error" 字段的值，并将其转换为整型
         int error = jsonObj["error"].toInt();
+
+        //检查 JSON 回包是否正确包含 error 和 email 字段
+        qDebug() << "Response JSON:" << jsonObj;
+
         if (error != ErrorCodes::SUCCESS) {
             // 显示错误提示，使用 showTip 函数并传入参数提示信息和 false（表示失败状态）
             showTip(tr("参数错误！"), false);
