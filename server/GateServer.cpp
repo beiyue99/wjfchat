@@ -9,7 +9,7 @@
 int main()
 {
   
-    ConfigMgr gCfgMgr; //读取配置文件类
+    auto& gCfgMgr = ConfigMgr::Inst(); //读取配置文件类
     std::string gate_port_str = gCfgMgr["GateServer"]["Port"];
 
 

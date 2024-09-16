@@ -10,6 +10,11 @@
 //如果是获取验证码的post请求，服务器就会与验证服务发请求，
 // 调用grpc生成的GetVarifyCode方法获取验证码,发送至邮箱(通过node.js实现)
 
+//改进：一开始只有一个io_context，接收连接的acceptor用它，新连接的HttpConnection也用它
+//后来，采用连接池，一开始一个io_context与acceptor绑定，后来每有一个HttpConnection都与池子的io_context绑定
+//RPC调用也改进了：新增了RPCPool，为一个队列（connections）,存放多个stub（信使）,这样每次调用远程RPC方法的时候，
+//不同的连接可以Get不同的stub从而提高性能
+
 
 
 
@@ -21,4 +26,7 @@
 //注册类slot_reg_mod_finish会进行相应的处理：如果成功解析服务器回的数据，就通知客户端验证码已经发送！
 //然后将解析的数据通过消息id，找到对应的消息处理器处理。（消息id和对应的回调存在map里：_handlers）
 //怎么处理就很简单，就是从json数据提取email，然后简单的打印，提示用户验证码已发送到邮箱
+
+
+
 
