@@ -33,13 +33,14 @@ void CServer::Start()
     auto self = shared_from_this();
     auto& io_context = AsioIOServicePool::GetInstance()->GetIOService();
     std::shared_ptr<HttpConnection> new_con = std::make_shared<HttpConnection>(io_context);
-    _acceptor.async_accept(new_con->GetSocket(), [self, new_con](beast::error_code ec) {
+	_acceptor.async_accept(new_con->GetSocket(), [self, new_con](beast::error_code ec) { //异步接收连接
         try {
             //出错则放弃这个连接，继续监听新链接
             if (ec) {
-                self->Start();
+				self->Start(); //继续监听
                 return;
             }
+
             //处理新链接，创建HpptConnection类管理新连接
             new_con->Start();
             //继续监听

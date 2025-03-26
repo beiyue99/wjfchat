@@ -25,6 +25,11 @@ add_executable(client
   registdialog.cpp
   global.cpp
   httpmgr.cpp
+  timerbtn.cpp
+  clickedlabel.cpp
+  resetdialog.cpp
+  tcpmgr.cpp
+  usermgr.cpp
 
   mainwindow.h
   logindialog.h
@@ -32,10 +37,16 @@ add_executable(client
   global.h
   singleton.h
   httpmgr.h
+  timerbtn.h
+  clickedlabel.h
+  resetdialog.h
+  tcpmgr.h
+  usermgr.h
 
   mainwindow.ui
   logindialog.ui
   registdialog.ui
+  resetdialog.ui
   ${RESOURCE_FILES} # 添加资源文件
 )
 

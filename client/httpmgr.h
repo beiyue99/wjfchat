@@ -19,8 +19,7 @@ class HttpMgr:public QObject,public Singleton<HttpMgr>,
     Q_OBJECT
 public:
     ~HttpMgr();   //因为基类智能指针释放T(HttpMgr)时会调用该方法，所以设置为共有
-    //但是基类也会new一个T(HttpMgr)，因此构造函数也需要设置为共有，单着不符合初衷，因此引入友元
-
+    //但是基类也会new一个T(HttpMgr)，因此构造函数也需要设置为共有，但这不符合单例类初衷，因此引入友元
 
      void PostHttpReq(QUrl url,QJsonObject json,ReqId req_id,Modules mod);
      //发送一个POST请求，将JSON数据发送到指定的URL，然后处理服务器的响应结果（包括成功和失败情况），
@@ -37,6 +36,8 @@ private slots:
 signals:
     void sig_http_finish(ReqId id,QString res,ErrorCodes err,Modules mod);
     void sig_reg_mod_finish(ReqId id,QString res,ErrorCodes err);
+    void sig_reset_mod_finish(ReqId id, QString res, ErrorCodes err);
+    void sig_login_mod_finish(ReqId id, QString res, ErrorCodes err);
 };
 
 #endif // HTTPMGR_H

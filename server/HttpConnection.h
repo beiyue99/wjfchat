@@ -17,7 +17,7 @@ private:
 	void HandleReq(); //处理请求
 	void PreParseGetParam();//请求的参数解析
 	
-	tcp::socket _socket;
+	tcp::socket _socket;  //连接的socket
 	beast::flat_buffer _buffer{ 8192 }; //接收数据的buffer
 	http::request<http::dynamic_body> _request; //接收对方的请求
 	http::response<http::dynamic_body> _response; //回复对方

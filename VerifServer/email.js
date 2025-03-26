@@ -5,7 +5,6 @@ const nodemailer = require('nodemailer');
 const config_module = require("./config")
 
 // 创建一个邮件发送的传输实例，配置邮件服务器信息
-// 使用 `nodemailer.createTransport()` 方法来定义发送邮件的配置
 let transport = nodemailer.createTransport({
     host: 'smtp.163.com', // 使用 163 邮箱的 SMTP 服务器
     port: 465,            // 465 端口用于 SSL 加密连接的 SMTP 服务

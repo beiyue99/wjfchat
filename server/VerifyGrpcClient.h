@@ -17,19 +17,14 @@ using message::VarifyService;
 
 
 
-
-
-
-
-
 class RPConPool {
 public:
     RPConPool(size_t poolSize, std::string host, std::string port)
         : poolSize_(poolSize), host_(host), port_(port), b_stop_(false) {
         for (size_t i = 0; i < poolSize_; ++i) {
             std::shared_ptr<Channel> channel = grpc::CreateChannel(host + ":" + port,
-                grpc::InsecureChannelCredentials());
-            connections_.push(VarifyService::NewStub(channel));
+				grpc::InsecureChannelCredentials()); //InsecureChannelCredentials代表不使用加密连接
+			connections_.push(VarifyService::NewStub(channel)); 
         }
     }
     ~RPConPool() {
@@ -43,15 +38,15 @@ public:
         std::unique_lock<std::mutex> lock(mutex_);
         cond_.wait(lock, [this] {
             if (b_stop_) {
-                return true;
+				return true;   //如果停止则直接返回true,继续执行
             }
-            return !connections_.empty();
+			return !connections_.empty(); //如果不为空则返回true,继续执行,否则等待
             });
         //如果停止则直接返回空指针
         if (b_stop_) {
             return  nullptr;
         }
-        auto context = std::move(connections_.front());
+		auto context = std::move(connections_.front()); //move作用是将connections_.front()的值转移到context中
         connections_.pop();
         return context;
     }
@@ -76,12 +71,6 @@ private:
     std::mutex mutex_;
     std::condition_variable cond_;
 };
-
-
-
-
-
-
 
 
 
@@ -116,6 +105,6 @@ public:
     }
 
 private:
-    VerifyGrpcClient();
-    std::unique_ptr<RPConPool> pool_;
+    VerifyGrpcClient(); 
+	std::unique_ptr<RPConPool> pool_; // 连接池
 };

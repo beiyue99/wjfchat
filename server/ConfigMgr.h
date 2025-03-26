@@ -12,25 +12,23 @@ struct SectionInfo {
         _section_datas = src._section_datas;
     }
 
+	//重载赋值运算符,用于将src的值赋给当前对象
     SectionInfo& operator = (const SectionInfo& src) {
         if (&src == this) {
             return *this;
         }
-
         this->_section_datas = src._section_datas;
         return *this;
     }
 
-    std::map<std::string, std::string> _section_datas;
+	std::map<std::string, std::string> _section_datas;  //存储key-value对的map
     std::string  operator[](const std::string& key) {
         if (_section_datas.find(key) == _section_datas.end()) {
             return "";
         }
-        // 这里可以添加一些边界检查  
         return _section_datas[key];
     }
 };
-
 
 class ConfigMgr
 {
@@ -38,9 +36,10 @@ public:
     ~ConfigMgr() {
         _config_map.clear();
     }
+	//重载中括号运算符,用于获取section对应的SectionInfo对象
     SectionInfo operator[](const std::string& section) {
         if (_config_map.find(section) == _config_map.end()) {
-            return SectionInfo();
+			return SectionInfo();  //如果没有找到则返回空的SectionInfo对象
         }
         return _config_map[section];
     }
@@ -54,7 +53,6 @@ public:
         if (&src == this) {
             return *this;
         }
-
         this->_config_map = src._config_map;
     };
 

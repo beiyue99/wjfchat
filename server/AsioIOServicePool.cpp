@@ -9,6 +9,8 @@ _works(size), _nextIOService(0) {
         _works[i] = std::unique_ptr<Work>(new Work(_ioServices[i]));
     }
     //遍历多个ioservice，创建多个线程，每个线程内部启动ioservice
+    //emplace_back 直接在 _threads 向量中创建一个线程，
+    // 而不需要先构造临时 std::thread 对象再传入。
     for (std::size_t i = 0; i < _ioServices.size(); ++i) {
         _threads.emplace_back([this, i]() {
             _ioServices[i].run();

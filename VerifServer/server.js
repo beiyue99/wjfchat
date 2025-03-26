@@ -3,46 +3,53 @@ const message_proto = require("./proto")
 const const_module = require('./const')
 const { v4: uuidv4 } = require('uuid');
 const emailModule = require('./email')
-
+const redis_module = require('./redis')
 
 // 定义异步函数 GetVarifyCode，用于处理客户端的 gRPC 请求
 // 'call' 参数包含请求信息，'callback' 用于响应客户端
 async function GetVarifyCode(call, callback) {
-    // 打印客户端发送的邮箱地址
-    console.log("email is ", call.request.email);
-    
+    console.log("email is ", call.request.email)
     try {
-        // 生成唯一的验证码（UUID）
-        uniqueId = uuidv4();
-        console.log("uniqueId is ", uniqueId);
-        
-        // 定义邮件内容，包含验证码和提示信息
-        let text_str = '您的验证码为' + uniqueId + '，请三分钟内完成注册';
-        
-        // 构建邮件选项，包括发件人、收件人、主题和邮件正文
+        let query_res = await redis_module.GetRedis(const_module.code_prefix + call.request.email);
+        console.log("query_res is ", query_res)
+        if (query_res == null) {
+        }
+        let uniqueId = query_res;
+        if (query_res == null) {
+            uniqueId = uuidv4();
+            if (uniqueId.length > 4) {
+                uniqueId = uniqueId.substring(0, 4);
+            }
+            let bres = await redis_module.SetRedisExpire(const_module.code_prefix + call.request.email, uniqueId, 600)
+            if (!bres) {
+                callback(null, {
+                    email: call.request.email,
+                    error: const_module.Errors.RedisErr
+                });
+                return;
+            }
+        }
+        console.log("uniqueId is ", uniqueId)
+        let text_str = '您的验证码为' + uniqueId + '请三分钟内完成注册'
+        //发送邮件
         let mailOptions = {
-            from: '18137575298@163.com', // 发件人邮箱地址
-            to: call.request.email, // 客户端请求中的目标邮箱地址
-            subject: '验证码', // 邮件主题
-            text: text_str, // 邮件正文，包含验证码
+            from: '18137575298@163.com',
+            to: call.request.email,
+            subject: '验证码',
+            text: text_str,
         };
-
-        // 使用自定义的 emailModule 发送邮件，并等待异步响应
         let send_res = await emailModule.SendMail(mailOptions);
-        console.log("send res is ", send_res);
-        
-        // 如果邮件发送成功，调用回调函数，返回成功信息给客户端
-        callback(null, { 
-            email: call.request.email, // 返回客户端发送的邮箱地址
-            error: const_module.Errors.Success // 返回成功状态码
-        }); 
+        console.log("send res is ", send_res)
+        callback(null, {
+            email: call.request.email,
+            error: const_module.Errors.Success
+        });
     } catch (error) {
-        // 如果发生错误，打印错误信息并返回异常状态给客户端
-        console.log("catch error is ", error);
-        callback(null, { 
-            email: call.request.email, // 返回客户端发送的邮箱地址
-            error: const_module.Errors.Exception // 返回异常状态码
-        }); 
+        console.log("catch error is ", error)
+        callback(null, {
+            email: call.request.email,
+            error: const_module.Errors.Exception
+        });
     }
 }
 
