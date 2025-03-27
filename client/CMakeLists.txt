@@ -39,6 +39,11 @@ add_executable(client
   loadingdlg.cpp
   chatpage.cpp
   chatview.cpp
+  chatitembase.cpp
+  bubbleframe.cpp
+  textbubble.cpp
+  picturebubble.cpp
+  messagetextedit.cpp
 
   mainwindow.h
   logindialog.h
@@ -60,6 +65,11 @@ add_executable(client
   loadingdlg.h
   chatpage.h
   chatview.h
+  chatitembase.h
+  bubbleframe.h
+  textbubble.h
+  picturebubble.h
+  messagetextedit.h
 
   mainwindow.ui
   logindialog.ui

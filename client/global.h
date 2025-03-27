@@ -92,6 +92,18 @@ enum ListItemType{
     INVALID_ITEM,//不可点击条目
     GROUP_TIP_ITEM,//分组提示条目
 };
+
+enum class ChatRole
+{
+    Self,
+    Other
+};
+
+struct MsgInfo{
+    QString msgFlag;//"text,image,file"
+    QString content;//表示文件和图像的url,文本信息
+    QPixmap pixmap;//文件和图片的缩略图
+};
 #endif // GLOBAL_H
 
 
