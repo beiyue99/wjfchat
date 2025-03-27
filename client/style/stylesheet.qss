@@ -258,3 +258,13 @@ LoadingDlg{
 #file_lb[state='press']{
     border-image: url(:/res/filedir_press.png);
 }
+
+#chat data_list{
+    background: #f0f0f0;
+ }
+#chat_bg{
+    background: #f0f0f0;
+}
+#chat_area{
+    border: none;
+}

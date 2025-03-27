@@ -38,6 +38,7 @@ add_executable(client
   ListItemBase.cpp
   loadingdlg.cpp
   chatpage.cpp
+  chatview.cpp
 
   mainwindow.h
   logindialog.h
@@ -58,6 +59,7 @@ add_executable(client
   ListItemBase.h
   loadingdlg.h
   chatpage.h
+  chatview.h
 
   mainwindow.ui
   logindialog.ui
