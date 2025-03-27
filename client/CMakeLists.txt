@@ -44,6 +44,10 @@ add_executable(client
   textbubble.cpp
   picturebubble.cpp
   messagetextedit.cpp
+  statewidget.cpp
+  searchlist.cpp
+  userdata.cpp
+  adduseritem.cpp
 
   mainwindow.h
   logindialog.h
@@ -70,6 +74,10 @@ add_executable(client
   textbubble.h
   picturebubble.h
   messagetextedit.h
+  statewidget.h
+  searchlist.h
+  userdata.h
+  adduseritem.h
 
   mainwindow.ui
   logindialog.ui
@@ -79,6 +87,7 @@ add_executable(client
   chatuserwid.ui
   loadingdlg.ui
   chatpage.ui
+  adduseritem.ui
   ${RESOURCE_FILES} # 添加资源文件
 )
 

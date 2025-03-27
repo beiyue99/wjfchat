@@ -7,6 +7,7 @@
 #include <functional>
 #include <QObject>
 #include <QJsonArray>
+#include "userdata.h"
 
 /**
  * @brief TcpMgr 类，管理 TCP 连接及数据收发
@@ -68,6 +69,7 @@ signals:
     void sig_send_data(ReqId reqId, QByteArray data); ///< 发送数据信号
     void sig_swich_chatdlg(); ///< 切换聊天窗口信号
     void sig_login_failed(int); ///< 登录失败信号
+    void sig_user_search(std::shared_ptr<SearchInfo>);
 };
 
 #endif // TCPMGR_H
