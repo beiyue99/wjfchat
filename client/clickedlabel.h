@@ -26,6 +26,8 @@ public:
      */
     virtual void mousePressEvent(QMouseEvent *ev) override;
 
+    virtual void mouseReleaseEvent(QMouseEvent *ev) override;
+
     /**
      * @brief 处理鼠标进入事件
      * @param event 事件对象

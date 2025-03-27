@@ -5,6 +5,7 @@
 #include "logindialog.h"
 #include "registdialog.h"
 #include "resetdialog.h"
+#include "chatdialog.h"
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
@@ -18,14 +19,16 @@ public:
     ~MainWindow();
 public slots:
 
-    void  SlotSwitchReg ();   //切换注册页面的槽函数
+    void SlotSwitchReg ();   //切换注册页面的槽函数
     void SlotSwitchLogin();
     void SlotSwitchReset();
     void SlotSwitchLogin2();
+    void SlotSwitchChat();
 private:
     Ui::MainWindow *ui;
     LoginDialog *_login_dlg;  //登录窗口
     RegistDialog* _reg_dlg;   //注册窗口
     ResetDialog* _reset_dlg;
+    ChatDialog* _chat_dlg;
 };
 #endif // MAINWINDOW_H

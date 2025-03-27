@@ -30,6 +30,14 @@ add_executable(client
   resetdialog.cpp
   tcpmgr.cpp
   usermgr.cpp
+  chatdialog.cpp
+  clickedbtn.cpp
+  customizeedit.cpp
+  chatuserlist.cpp
+  chatuserwid.cpp
+  ListItemBase.cpp
+  loadingdlg.cpp
+  chatpage.cpp
 
   mainwindow.h
   logindialog.h
@@ -42,11 +50,23 @@ add_executable(client
   resetdialog.h
   tcpmgr.h
   usermgr.h
+  chatdialog.h
+  clickedbtn.h
+  customizeedit.h
+  chatuserlist.h
+  chatuserwid.h
+  ListItemBase.h
+  loadingdlg.h
+  chatpage.h
 
   mainwindow.ui
   logindialog.ui
   registdialog.ui
   resetdialog.ui
+  chatdialog.ui
+  chatuserwid.ui
+  loadingdlg.ui
+  chatpage.ui
   ${RESOURCE_FILES} # 添加资源文件
 )
 
