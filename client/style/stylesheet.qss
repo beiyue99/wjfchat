@@ -101,10 +101,7 @@
     border: none;
     outline: none;
 }
-ChatUserWid {
-    background-color:rgb(247,247,247);
-    border: none;
-}
+
 
 #user_chat_lb{
     color:rgb(153,153,153);
@@ -581,4 +578,198 @@ LoadingDlg{
     font-size: 16px; /* 设置字体大小 */
     font-family: "Microsoft YaHei"; /* 设置字体 */
     border-radius: 20px; /* 设置圆角 */
+}
+
+
+#con_user_list {
+    background-color: rgb(247,247,248);
+    border: none;
+}
+
+#con_user_list::item:selected {
+    background-color: #d3d7d4;
+    border: none;
+    outline: none;
+}
+
+#con_user_list::item:hover {
+    background-color: rgb(206,207,208);
+    border: none;
+    outline: none;
+}
+
+#con_user_list::focus {
+    border: none;
+    outline: none;
+}
+
+
+#GroupTipItem {
+    background-color: #eaeaea;
+    border: none;
+}
+
+#GroupTipItem QLabel{
+    color: #2e2f30;
+    font-size: 12px; /* 设置字体大小 */
+    font-family: "Microsoft YaHei"; /* 设置字体 */
+    border: none;
+}
+
+#new_friend_item {
+     border-bottom: 1px solid #eaeaea;
+}
+
+#LineItem {
+    background-color:rgb(247,247,247);
+    border: none;
+}
+
+#friend_apply_lb {
+    font-family: "Microsoft YaHei";
+    font-size: 18px;
+    font-weight: normal;
+}
+
+#friend_apply_wid {
+    background-color: #f1f2f3;
+    border-bottom: 1px solid #ede9e7;
+}
+
+#apply_friend_list {
+    background-color: #f1f2f3;
+    border-left: 1px solid #ede9e7;
+    border-top: none;
+    border-right: none;
+    border-bottom: none;
+}
+
+ApplyFriendItem {
+    background-color: #f1f2f3;
+    border-bottom: 2px solid #dbd9d9;
+}
+
+ApplyFriendItem #user_chat_lb{
+    color: #a2a2a2;
+    font-size: 14px; /* 设置字体大小 */
+    font-family: "Microsoft YaHei"; /* 设置字体 */
+}
+
+ApplyFriendItem #addBtn[state='normal'] {
+    background-color: #d3d7d4;
+    color: #2cb46e;
+    font-size: 16px; /* 设置字体大小 */
+    font-family: "Microsoft YaHei"; /* 设置字体 */
+    border-radius: 20px; /* 设置圆角 */
+}
+
+ApplyFriendItem #addBtn[state='hover'] {
+    background-color: #D3D3D3;
+    color: #2cb46e;
+    font-size: 16px; /* 设置字体大小 */
+    font-family: "Microsoft YaHei"; /* 设置字体 */
+    border-radius: 20px; /* 设置圆角 */
+}
+
+ApplyFriendItem #addBtn[state='press'] {
+    background-color: #BEBEBE;
+    color: #2cb46e;
+    font-size: 16px; /* 设置字体大小 */
+    font-family: "Microsoft YaHei"; /* 设置字体 */
+    border-radius: 20px; /* 设置圆角 */
+}
+
+#AuthenFriend {
+    border: 2px solid #f1f1f1;
+    font-size: 14px;
+    background: #f7f7f8;
+}
+
+#red_point {
+    border-image: url(:/res/red_point.png);
+}
+
+#FindFailDlg{
+   background-color: #ffffff;
+}
+
+#fail_tip, #fail_tip2 {
+    font-size: 14px;
+    font-family: "Microsoft YaHei";
+}
+
+#fail_sure_btn[state='normal']{
+    background: #07c160;
+    color: #ffffff;
+    font-size: 14px; /* 设置字体大小 */
+    font-family: "Microsoft YaHei"; /* 设置字体 */
+    border-radius: 20px; /* 设置圆角 */
+}
+
+#fail_sure_btn[state='hover']{
+    background: #3bbb4b;
+    color: #ffffff;
+    font-size: 14px; /* 设置字体大小 */
+    font-family: "Microsoft YaHei"; /* 设置字体 */
+    border-radius: 20px; /* 设置圆角 */
+}
+
+#fail_sure_btn[state='press']{
+   background: #07c160;
+   color: #ffffff;
+   font-size: 14px; /* 设置字体大小 */
+   font-family: "Microsoft YaHei"; /* 设置字体 */
+   border-radius: 20px; /* 设置圆角 */
+}
+
+#friend_info_page #name_lb {
+    color: #161616;
+    font-size: 18px; /* 设置字体大小 */
+    font-family: "Microsoft YaHei"; /* 设置字体 */
+}
+
+#friend_info_page #nick_tip,
+#friend_info_page #nick_lb,
+#friend_info_page #bak_lb,
+#friend_info_page #bak_tip
+{
+    color: #161616;
+    font-size: 14px; /* 设置字体大小 */
+    font-family: "Microsoft YaHei"; /* 设置字体 */
+}
+
+#msg_chat[state='normal'] {
+ border-image: url(:/res/msg_chat_normal.png);
+}
+
+#msg_chat[state='hover'] {
+ border-image: url(:/res/msg_chat_hover.png);
+}
+
+#msg_chat[state='press'] {
+ border-image: url(:/res/msg_chat_press.png);
+}
+
+#video_chat[state='normal'] {
+ border-image: url(:/res/video_chat_normal.png);
+}
+
+#video_chat[state='hover'] {
+ border-image: url(:/res/video_chat_hover.png);
+}
+
+#video_chat[state='press'] {
+ border-image: url(:/res/video_chat_press.png);
+}
+
+#voice_chat[state='normal'] {
+ border-image: url(:/res/voice_chat_normal.png);
+}
+
+#voice_chat[state='hover'] {
+ border-image: url(:/res/voice_chat_hover.png);
+}
+
+#voice_chat[state='press'] {
+ border-image: url(:/res/voice_chat_press.png);
 }

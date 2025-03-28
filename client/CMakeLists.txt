@@ -54,6 +54,9 @@ add_executable(client
   applyfriend.cpp
   clickedoncelabel.cpp
   friendlabel.cpp
+  contactuserlist.cpp
+  conuseritem.cpp
+  grouptipitem.cpp
 
   mainwindow.h
   logindialog.h
@@ -88,6 +91,9 @@ add_executable(client
   applyfriend.h
   clickedoncelabel.h
   friendlabel.h
+  contactuserlist.h
+  conuseritem.h
+  grouptipitem.h
 
   mainwindow.ui
   logindialog.ui
@@ -101,6 +107,8 @@ add_executable(client
   findsuccessdlg.ui
   applyfriend.ui
   friendlabel.ui
+  conuseritem.ui
+  grouptipitem.ui
   ${RESOURCE_FILES} # 添加资源文件
 )
 
