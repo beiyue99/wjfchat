@@ -51,6 +51,9 @@ add_executable(client
   userdata.cpp
   adduseritem.cpp
   findsuccessdlg.cpp
+  applyfriend.cpp
+  clickedoncelabel.cpp
+  friendlabel.cpp
 
   mainwindow.h
   logindialog.h
@@ -82,6 +85,9 @@ add_executable(client
   userdata.h
   adduseritem.h
   findsuccessdlg.h
+  applyfriend.h
+  clickedoncelabel.h
+  friendlabel.h
 
   mainwindow.ui
   logindialog.ui
@@ -93,6 +99,8 @@ add_executable(client
   chatpage.ui
   adduseritem.ui
   findsuccessdlg.ui
+  applyfriend.ui
+  friendlabel.ui
   ${RESOURCE_FILES} # 添加资源文件
 )
 

@@ -48,6 +48,8 @@ public:
      * @return 返回当前 ClickLbState 状态
      */
     ClickLbState GetCurState();
+    bool SetCurState(ClickLbState state);
+    void ResetNormalState();
 
 private:
     QString _normal;          ///< 正常状态样式
@@ -63,7 +65,7 @@ signals:
      * @brief clicked 信号
      * 当标签被点击时触发
      */
-    void clicked(void);
+    void clicked(QString, ClickLbState);
 };
 
 #endif // CLICKEDLABEL_H

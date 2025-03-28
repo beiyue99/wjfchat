@@ -82,7 +82,7 @@ void SearchList::slot_item_clicked(QListWidgetItem *item)
    if(itemType == ListItemType::ADD_USER_TIP_ITEM){
 
        _find_dlg = std::make_shared<FindSuccessDlg>(this);
-       auto si = std::make_shared<SearchInfo>(0,"wjf","wjf","hello ,my friend!",0);
+       auto si = std::make_shared<SearchInfo>(0, "wjf", "wjf", "hello, my friend!", 0, "default_icon_path");
        std::dynamic_pointer_cast<FindSuccessDlg>(_find_dlg)->SetSearchInfo(si);
        _find_dlg->show();
        return;
