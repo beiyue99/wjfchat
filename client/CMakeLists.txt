@@ -18,6 +18,8 @@ qt5_add_resources(RESOURCE_FILES resources.qrc)
 # 设置可执行文件输出目录
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
+
+
 add_executable(client
   main.cpp
   mainwindow.cpp
@@ -48,6 +50,7 @@ add_executable(client
   searchlist.cpp
   userdata.cpp
   adduseritem.cpp
+  findsuccessdlg.cpp
 
   mainwindow.h
   logindialog.h
@@ -78,6 +81,7 @@ add_executable(client
   searchlist.h
   userdata.h
   adduseritem.h
+  findsuccessdlg.h
 
   mainwindow.ui
   logindialog.ui
@@ -88,6 +92,7 @@ add_executable(client
   loadingdlg.ui
   chatpage.ui
   adduseritem.ui
+  findsuccessdlg.ui
   ${RESOURCE_FILES} # 添加资源文件
 )
 
@@ -96,11 +101,17 @@ add_custom_command(
     TARGET client POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
     ${CMAKE_SOURCE_DIR}/config.ini ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-    COMMENT "Copying config.ini to output directory"
 )
+# 创建一个自定义目标来确保每次都复制 static 文件夹
+add_custom_target(copy_static ALL
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/static ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/static
+)
+add_dependencies(client copy_static)
+
 
 # 将 config.ini 文件显式添加到项目中（仅为了 IDE 显示）
 add_custom_target(config_files SOURCES ${CMAKE_SOURCE_DIR}/config.ini)
-
 # 指定目标链接的库
 target_link_libraries(client PRIVATE Qt5::Widgets Qt5::Network)
+

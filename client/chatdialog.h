@@ -18,6 +18,9 @@ public:
     ~ChatDialog();
     void addChatUserList();   //测试函数，添加用户聊天列表
     void ClearLabelState(StateWidget* lb);
+protected:
+    bool eventFilter(QObject* watched,QEvent* event) override;
+    void handleGlobalMousePress(QMouseEvent* event);
 private:
     void ShowSearch(bool bsearch = false);
     void AddLBGroup(StateWidget* lb);
