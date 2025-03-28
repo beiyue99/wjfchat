@@ -678,6 +678,11 @@ ApplyFriendItem #addBtn[state='press'] {
     font-family: "Microsoft YaHei"; /* 设置字体 */
     border-radius: 20px; /* 设置圆角 */
 }
+#already_add_lb{
+    color:rgb(153,153,153);
+    font-size: 12px;
+    font-family: "Microsoft YaHei";
+}
 
 #AuthenFriend {
     border: 2px solid #f1f1f1;
