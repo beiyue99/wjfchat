@@ -144,7 +144,6 @@ bool LoginDialog::checkPwdValid()
  */
 void LoginDialog::slot_forget_pwd()
 {
-    qDebug() << "slot forget pwd";
     emit switchReset();
 }
 
@@ -217,7 +216,7 @@ void LoginDialog::initHttpHandlers()
     _handlers.insert(ReqId::ID_LOGIN_USER, [this](QJsonObject jsonObj) {
         int error = jsonObj["error"].toInt();
         if (error != ErrorCodes::SUCCESS) {
-            showTip(tr("参数错误"), false);
+            showTip(tr("参数错误1"), false);
             enableBtn(true);
             return;
         }

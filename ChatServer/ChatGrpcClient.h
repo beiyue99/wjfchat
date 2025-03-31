@@ -32,6 +32,7 @@ using message::TextChatMsgRsp;	//文本聊天响应
 using message::TextChatData; //文本聊天数据
 
 
+//ChatConPool类,grpc连接池
 class ChatConPool {
 public:
 	ChatConPool(size_t poolSize, std::string host, std::string port)
@@ -101,8 +102,7 @@ public:
 	AddFriendRsp NotifyAddFriend(std::string server_ip, const AddFriendReq& req); //通知添加好友
 	AuthFriendRsp NotifyAuthFriend(std::string server_ip, const AuthFriendReq& req); //通知认证好友
 	bool GetBaseInfo(std::string base_key, int uid, std::shared_ptr<UserInfo>& userinfo); //获取用户基本信息
-	TextChatMsgRsp NotifyTextChatMsg(std::string server_ip, 
-		const TextChatMsgReq& req, const Json::Value& rtvalue); //通知文本聊天消息
+	TextChatMsgRsp NotifyTextChatMsg(std::string server_ip, const TextChatMsgReq& req, const Json::Value& rtvalue); //通知文本聊天消息
 	
 private:
 	ChatGrpcClient(); //获取配置信息,初始化grpc连接池

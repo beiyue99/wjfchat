@@ -88,7 +88,7 @@ public:
 
 	}
 
-	//AddFriendRsp NotifyAddFriend(const AddFriendReq& req);
+	AddFriendRsp NotifyAddFriend(const AddFriendReq& req);
 
 private:
 	ChatGrpcClient();

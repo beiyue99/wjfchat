@@ -8,13 +8,11 @@ ClickedLabel::ClickedLabel(QWidget* parent):QLabel (parent),_curstate(ClickLbSta
 void ClickedLabel::mousePressEvent(QMouseEvent* event)  {
     if (event->button() == Qt::LeftButton) {
         if(_curstate == ClickLbState::Normal){
-              qDebug()<<"clicked , change to selected hover: "<< _selected_hover;
             _curstate = ClickLbState::Selected;
             setProperty("state",_selected_press);
             repolish(this);
             update();
         }else{
-               qDebug()<<"clicked , change to normal hover: "<< _normal_hover;
             _curstate = ClickLbState::Normal;
             setProperty("state",_normal_press);
             repolish(this);
@@ -51,12 +49,10 @@ void ClickedLabel::mouseReleaseEvent(QMouseEvent *event)
 void ClickedLabel::enterEvent(QEvent* event) {
     // 在这里处理鼠标悬停进入的逻辑
     if(_curstate == ClickLbState::Normal){
-         qDebug()<<"enter , change to normal hover: "<< _normal_hover;
         setProperty("state",_normal_hover);
         repolish(this);
         update();
     }else{
-         qDebug()<<"enter , change to selected hover: "<< _selected_hover;
         setProperty("state",_selected_hover);
         repolish(this);
         update();
@@ -67,12 +63,10 @@ void ClickedLabel::enterEvent(QEvent* event) {
 void ClickedLabel::leaveEvent(QEvent* event){
     // 在这里处理鼠标悬停离开的逻辑
     if(_curstate == ClickLbState::Normal){
-         qDebug()<<"leave , change to normal : "<< _normal;
         setProperty("state",_normal);
         repolish(this);
         update();
     }else{
-         qDebug()<<"leave , change to normal hover: "<< _selected;
         setProperty("state",_selected);
         repolish(this);
         update();

@@ -56,7 +56,6 @@ private:
 	ChatServer getChatServer();
 	std::unordered_map<std::string, ChatServer> _servers; // 服务器列表, key为服务器名字, value为服务器
 	std::mutex _server_mtx;
-	std::unordered_map<int, std::string> _tokens; // token列表, key为uid, value为token	
-	std::mutex _token_mtx;
+	//std::unordered_map<int, std::string> _tokens; // 存token，key为uid, value为token	  先删掉，用户多了token会很多，所以用redis，不能直接存在内存
 };
 

@@ -51,13 +51,11 @@ void StateWidget::mouseReleaseEvent(QMouseEvent *event)
 {
     if (event->button() == Qt::LeftButton) {
         if(_curstate == ClickLbState::Normal){
-            //qDebug()<<"ReleaseEvent , change to normal hover: "<< _normal_hover;
             setProperty("state",_normal_hover);
             repolish(this);
             update();
 
         }else{
-            //qDebug()<<"ReleaseEvent , change to select hover: "<< _selected_hover;
             setProperty("state",_selected_hover);
             repolish(this);
             update();

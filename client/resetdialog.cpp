@@ -43,13 +43,11 @@ ResetDialog::~ResetDialog()
 
 void ResetDialog::on_return_btn_clicked()
 {
-    qDebug() << "sure btn clicked ";
     emit switchLogin();
 }
 
 void ResetDialog::on_varify_btn_clicked()
 {
-    qDebug()<<"receive varify btn clicked ";
     auto email = ui->email_edit->text();
     auto bcheck = checkEmailValid();
     if(!bcheck){
