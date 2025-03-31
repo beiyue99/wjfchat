@@ -1,8 +1,7 @@
 #ifndef SEARCHLIST_H
 #define SEARCHLIST_H
-
 #include <QListWidget>
-#include <QwheelEvent>
+#include <QWheelEvent>
 #include <QEvent>
 #include <QScrollBar>
 #include <QDebug>
@@ -56,7 +55,7 @@ private slots:
     void slot_item_clicked(QListWidgetItem *item);
     void slot_user_search(std::shared_ptr<SearchInfo> si);
 signals:
-
+    void sig_jump_chat_item(std::shared_ptr<SearchInfo> si);
 };
 
 #endif // SEARCHLIST_H

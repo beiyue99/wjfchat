@@ -61,27 +61,18 @@ public:
 
 	redisContext* getConnection() {
 		std::unique_lock<std::mutex> lock(mutex_);
-
 		cond_.wait(lock, [this] { 
 			if (b_stop_) {
 				return true;
-			}
-
-			if (connections_.empty())
-			{
-				std::cout << "连接池为空！" << std::endl;
 			}
 			return !connections_.empty(); 
 			});
 		//如果停止则直接返回空指针
 		if (b_stop_) {
-
 			return  nullptr;
 		}
-
 		auto* context = connections_.front();
 		connections_.pop();
-
 		return context;
 	}
 
@@ -113,7 +104,7 @@ private:
 			try {
 				auto reply = (redisReply*)redisCommand(context, "PING");
 				if (!reply) {
-					std::cout << "redis ping failed" << std::endl;
+					std::cout << "reply is null, redis ping failed: " << std::endl;
 					connections_.push(context);
 					continue;
 				}
@@ -157,10 +148,6 @@ private:
 	std::thread  check_thread_;
 	int counter_;
 };
-
-
-
-
 
 class RedisMgr: public Singleton<RedisMgr>, 
 	public std::enable_shared_from_this<RedisMgr>

@@ -1,4 +1,4 @@
-#include "textbubble.h"
+﻿#include "TextBubble.h"
 #include <QFontMetricsF>
 #include <QDebug>
 #include <QFont>

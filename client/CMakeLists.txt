@@ -60,6 +60,11 @@ add_executable(client
   applyfriendpage.cpp
   applyfrienditem.cpp
   applyfriendlist.cpp
+  authenfriend.cpp
+  findfaildlg.cpp
+  friendinfopage.cpp
+
+
 
   mainwindow.h
   logindialog.h
@@ -100,6 +105,9 @@ add_executable(client
   applyfriendpage.h
   applyfrienditem.h
   applyfriendlist.h
+  authenfriend.h
+  findfaildlg.h
+  friendinfopage.h
 
   mainwindow.ui
   logindialog.ui
@@ -117,6 +125,9 @@ add_executable(client
   grouptipitem.ui
   applyfriendpage.ui
   applyfrienditem.ui
+  authenfriend.ui
+  findfaildlg.ui
+  friendinfopage.ui
   ${RESOURCE_FILES} # 添加资源文件
 )
 

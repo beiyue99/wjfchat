@@ -10,7 +10,7 @@ public:
     CustomizeEdit(QWidget *parent = nullptr);
     void SetMaxLength(int maxLen);
 protected:
-    void focusOutEvent(QFocusEvent *event) override   //当 QLineEdit 失去焦点（比如用户点击了别的控件或窗口），focusOutEvent 就会被触发。
+    void focusOutEvent(QFocusEvent *event) override
     {
         // 执行失去焦点时的处理逻辑
         //qDebug() << "CustomizeEdit focusout";

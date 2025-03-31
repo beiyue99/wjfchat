@@ -43,11 +43,13 @@ ResetDialog::~ResetDialog()
 
 void ResetDialog::on_return_btn_clicked()
 {
+    qDebug() << "sure btn clicked ";
     emit switchLogin();
 }
 
 void ResetDialog::on_varify_btn_clicked()
 {
+    qDebug()<<"receive varify btn clicked ";
     auto email = ui->email_edit->text();
     auto bcheck = checkEmailValid();
     if(!bcheck){
@@ -150,11 +152,11 @@ bool ResetDialog::checkVarifyValid()
 {
     auto pass = ui->varify_edit->text();
     if(pass.isEmpty()){
-        AddTipErr(TipErr::TIP_VERIFY_ERR, tr("验证码不能为空"));
+        AddTipErr(TipErr::TIP_VARIFY_ERR, tr("验证码不能为空"));
         return false;
     }
 
-    DelTipErr(TipErr::TIP_VERIFY_ERR);
+    DelTipErr(TipErr::TIP_VARIFY_ERR);
     return true;
 }
 
@@ -199,7 +201,7 @@ void ResetDialog::initHandlers()
         auto email = jsonObj["email"].toString();
         showTip(tr("重置成功,点击返回登录"), true);
         qDebug()<< "email is " << email ;
-        qDebug()<< "user uuid is " <<  jsonObj["uid"].toString();
+        qDebug()<< "user uuid is " <<  jsonObj["uuid"].toString();
     });
 }
 
@@ -245,7 +247,5 @@ void ResetDialog::on_sure_btn_clicked()
     json_obj["passwd"] = xorString(ui->pwd_edit->text());
     json_obj["varifycode"] = ui->varify_edit->text();
     HttpMgr::GetInstance()->PostHttpReq(QUrl(gate_url_prefix+"/reset_pwd"),
-                                        json_obj, ReqId::ID_RESET_PWD,Modules::RESETMOD);
+                 json_obj, ReqId::ID_RESET_PWD,Modules::RESETMOD);
 }
-
-

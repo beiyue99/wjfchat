@@ -6,29 +6,38 @@
 #include "registdialog.h"
 #include "resetdialog.h"
 #include "chatdialog.h"
-QT_BEGIN_NAMESPACE
-namespace Ui { class MainWindow; }
-QT_END_NAMESPACE
+/******************************************************************************
+ *
+ * @file       mainwindow.h
+ * @brief      主界面功能 Function
+ *
+ * @author     恋恋风辰
+ * @date       2024/02/27
+ * @history
+ *****************************************************************************/
+namespace Ui {
+class MainWindow;
+}
 
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    MainWindow(QWidget *parent = nullptr);
+    explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 public slots:
-
-    void SlotSwitchReg ();   //切换注册页面的槽函数
+    void SlotSwitchReg();
     void SlotSwitchLogin();
     void SlotSwitchReset();
     void SlotSwitchLogin2();
     void SlotSwitchChat();
 private:
     Ui::MainWindow *ui;
-    LoginDialog *_login_dlg;  //登录窗口
-    RegistDialog* _reg_dlg;   //注册窗口
+    LoginDialog* _login_dlg;
+    RegistDialog* _reg_dlg;
     ResetDialog* _reset_dlg;
     ChatDialog* _chat_dlg;
 };
+
 #endif // MAINWINDOW_H

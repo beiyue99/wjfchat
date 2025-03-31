@@ -249,7 +249,6 @@ std::string RedisMgr::HGet(const std::string &key, const std::string &hkey)
 	if (connect == nullptr) {
 		return "";
 	}
-	std::cout << "Hget 2";
 	const char* argv[3];
 	size_t argvlen[3];
 	argv[0] = "HGET";
@@ -258,20 +257,21 @@ std::string RedisMgr::HGet(const std::string &key, const std::string &hkey)
 	argvlen[1] = key.length();
 	argv[2] = hkey.c_str();
 	argvlen[2] = hkey.length();
-	std::cout << "Hget 3";
+	
 	auto reply = (redisReply*)redisCommandArgv(connect, 3, argv, argvlen);
 	if (reply == nullptr ) {
 		std::cout << "Execut command [ HGet " << key << " "<< hkey <<"  ] failure ! " << std::endl;
 		_con_pool->returnConnection(connect);
 		return "";
 	}
-	std::cout << "Hget 4";
+
 	if ( reply->type == REDIS_REPLY_NIL) {
 		freeReplyObject(reply);
 		std::cout << "Execut command [ HGet " << key << " " << hkey << "  ] failure ! " << std::endl;
 		_con_pool->returnConnection(connect);
 		return "";
 	}
+
 	std::string value = reply->str;
 	freeReplyObject(reply);
 	_con_pool->returnConnection(connect);

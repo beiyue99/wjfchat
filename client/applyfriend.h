@@ -20,16 +20,14 @@ public:
     void AddTipLbs(ClickedLabel*, QPoint cur_point, QPoint &next_point, int text_width, int text_height);
     bool eventFilter(QObject *obj, QEvent *event);
     void SetSearchInfo(std::shared_ptr<SearchInfo> si);
-
 private:
-    Ui::ApplyFriend *ui;
     void resetLabels();
-
-    //å·²ç»åˆ›å»ºå¥½çš„æ ‡ç­¾
+    Ui::ApplyFriend *ui;
+    //ÒÑ¾­´´½¨ºÃµÄ±êÇ©
     QMap<QString, ClickedLabel*> _add_labels;
     std::vector<QString> _add_label_keys;
     QPoint _label_point;
-    //ç”¨æ¥åœ¨è¾“å…¥æ¡†æ˜¾ç¤ºæ·»åŠ æ–°å¥½å‹çš„æ ‡ç­¾
+    //ÓÃÀ´ÔÚÊäÈë¿òÏÔÊ¾Ìí¼ÓĞÂºÃÓÑµÄ±êÇ©
     QMap<QString, FriendLabel*> _friend_labels;
     std::vector<QString> _friend_label_keys;
     void addLabel(QString name);
@@ -37,23 +35,23 @@ private:
     QPoint _tip_cur_point;
     std::shared_ptr<SearchInfo> _si;
 public slots:
-    //æ˜¾ç¤ºæ›´å¤šlabelæ ‡ç­¾
+    //ÏÔÊ¾¸ü¶àlabel±êÇ©
     void ShowMoreLabel();
-    //è¾“å…¥labelæŒ‰ä¸‹å›è½¦è§¦å‘å°†æ ‡ç­¾åŠ å…¥å±•ç¤ºæ 
+    //ÊäÈëlabel°´ÏÂ»Ø³µ´¥·¢½«±êÇ©¼ÓÈëÕ¹Ê¾À¸
     void SlotLabelEnter();
-    //ç‚¹å‡»å…³é—­ï¼Œç§»é™¤å±•ç¤ºæ å¥½å‹ä¾¿ç­¾
+    //µã»÷¹Ø±Õ£¬ÒÆ³ıÕ¹Ê¾À¸ºÃÓÑ±ãÇ©
     void SlotRemoveFriendLabel(QString);
-    //é€šè¿‡ç‚¹å‡»tipå®ç°å¢åŠ å’Œå‡å°‘å¥½å‹ä¾¿ç­¾
+    //Í¨¹ıµã»÷tipÊµÏÖÔö¼ÓºÍ¼õÉÙºÃÓÑ±ãÇ©
     void SlotChangeFriendLabelByTip(QString, ClickLbState);
-    //è¾“å…¥æ¡†æ–‡æœ¬å˜åŒ–æ˜¾ç¤ºä¸åŒæç¤º
+    //ÊäÈë¿òÎÄ±¾±ä»¯ÏÔÊ¾²»Í¬ÌáÊ¾
     void SlotLabelTextChange(const QString& text);
-    //è¾“å…¥æ¡†è¾“å…¥å®Œæˆ
+    //ÊäÈë¿òÊäÈëÍê³É
     void SlotLabelEditFinished();
-   //è¾“å…¥æ ‡ç­¾æ˜¾ç¤ºæç¤ºæ¡†ï¼Œç‚¹å‡»æç¤ºæ¡†å†…å®¹åæ·»åŠ å¥½å‹ä¾¿ç­¾
+   //ÊäÈë±êÇ©ÏÔÊ¾ÌáÊ¾¿ò£¬µã»÷ÌáÊ¾¿òÄÚÈİºóÌí¼ÓºÃÓÑ±ãÇ©
     void SlotAddFirendLabelByClickTip(QString text);
-    //å¤„ç†ç¡®è®¤å›è°ƒ
+    //´¦ÀíÈ·ÈÏ»Øµ÷
     void SlotApplySure();
-    //å¤„ç†å–æ¶ˆå›è°ƒ
+    //´¦ÀíÈ¡Ïû»Øµ÷
     void SlotApplyCancel();
 };
 

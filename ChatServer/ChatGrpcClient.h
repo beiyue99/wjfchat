@@ -12,34 +12,35 @@
 #include <json/value.h>
 #include <json/reader.h>
 
-using grpc::Channel; //grpc通道
-using grpc::Status; //grpc状态	
-using grpc::ClientContext; //grpc客户端上下文	
+using grpc::Channel;
+using grpc::Status;
+using grpc::ClientContext;
 
-using message::AddFriendReq; //添加好友请求	
-using message::AddFriendRsp; //添加好友响应	
+using message::AddFriendReq;
+using message::AddFriendRsp;
 
-using message::AuthFriendReq; //认证好友请求	
-using message::AuthFriendRsp; //认证好友响应	
+using message::AuthFriendReq;
+using message::AuthFriendRsp;
 
-using message::GetChatServerRsp; //获取聊天服务器响应	
-using message::LoginRsp; //登录响应	
-using message::LoginReq; //登录请求	
-using message::ChatService; //聊天服务
+using message::GetChatServerRsp;
+using message::LoginRsp;
+using message::LoginReq;
+using message::ChatService;
 
-using message::TextChatMsgReq; //文本聊天请求
-using message::TextChatMsgRsp;	//文本聊天响应
-using message::TextChatData; //文本聊天数据
+using message::TextChatMsgReq;
+using message::TextChatMsgRsp;
+using message::TextChatData;
 
 
-//ChatConPool类,grpc连接池
 class ChatConPool {
 public:
 	ChatConPool(size_t poolSize, std::string host, std::string port)
 		: poolSize_(poolSize), host_(host), port_(port), b_stop_(false) {
 		for (size_t i = 0; i < poolSize_; ++i) {
+
 			std::shared_ptr<Channel> channel = grpc::CreateChannel(host + ":" + port,
 				grpc::InsecureChannelCredentials());
+
 			connections_.push(ChatService::NewStub(channel));
 		}
 	}
@@ -60,6 +61,7 @@ public:
 			}
 			return !connections_.empty();
 			});
+		//如果停止则直接返回空指针
 		if (b_stop_) {
 			return  nullptr;
 		}
@@ -97,17 +99,16 @@ class ChatGrpcClient :public Singleton<ChatGrpcClient>
 	friend class Singleton<ChatGrpcClient>;
 public:
 	~ChatGrpcClient() {
+
 	}
 
-	AddFriendRsp NotifyAddFriend(std::string server_ip, const AddFriendReq& req); //通知添加好友
-	AuthFriendRsp NotifyAuthFriend(std::string server_ip, const AuthFriendReq& req); //通知认证好友
-	bool GetBaseInfo(std::string base_key, int uid, std::shared_ptr<UserInfo>& userinfo); //获取用户基本信息
-	TextChatMsgRsp NotifyTextChatMsg(std::string server_ip, const TextChatMsgReq& req, const Json::Value& rtvalue); //通知文本聊天消息
-	
+	AddFriendRsp NotifyAddFriend(std::string server_ip, const AddFriendReq& req);
+	AuthFriendRsp NotifyAuthFriend(std::string server_ip, const AuthFriendReq& req);
+	bool GetBaseInfo(std::string base_key, int uid, std::shared_ptr<UserInfo>& userinfo);
+	TextChatMsgRsp NotifyTextChatMsg(std::string server_ip, const TextChatMsgReq& req, const Json::Value& rtvalue);
 private:
-	ChatGrpcClient(); //获取配置信息,初始化grpc连接池
-	unordered_map<std::string, std::unique_ptr<ChatConPool>> _pools; 
-	//grpc连接池,根据server_ip存储,每个server_ip对应一个连接池
+	ChatGrpcClient();
+	unordered_map<std::string, std::unique_ptr<ChatConPool>> _pools;	
 };
 
 

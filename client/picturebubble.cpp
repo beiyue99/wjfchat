@@ -1,4 +1,4 @@
-#include "picturebubble.h"
+﻿#include "PictureBubble.h"
 #include <QLabel>
 
 

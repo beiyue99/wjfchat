@@ -9,9 +9,10 @@
 #include <jdbc/cppconn/exception.h>
 #include "data.h"
 #include <memory>
+
+#include <chrono> // Add this include directive
 #include <queue>
 #include <mutex>
-#include <chrono>
 class SqlConnection {
 public:
 	SqlConnection(sql::Connection* con, int64_t lasttime):_con(con), _last_oper_time(lasttime){}
@@ -55,6 +56,7 @@ public:
 		int poolsize = pool_.size();
 		// 获取当前时间戳
 		auto currentTime = std::chrono::system_clock::now().time_since_epoch();
+
 		// 将时间戳转换为秒
 		long long timestamp = std::chrono::duration_cast<std::chrono::seconds>(currentTime).count();
 		for (int i = 0; i < poolsize; i++) {

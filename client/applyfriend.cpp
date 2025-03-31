@@ -15,21 +15,21 @@ ApplyFriend::ApplyFriend(QWidget *parent) :
     setWindowFlags(windowFlags() | Qt::FramelessWindowHint);
     this->setObjectName("ApplyFriend");
     this->setModal(true);
-    ui->name_ed->setPlaceholderText(tr("hello world"));
+    ui->name_ed->setPlaceholderText(tr("恋恋风辰"));
     ui->lb_ed->setPlaceholderText("搜索、添加标签");
     ui->back_ed->setPlaceholderText("燃烧的胸毛");
 
-    ui->lb_ed->SetMaxLength(21);
-    ui->lb_ed->move(2, 2);
-    ui->lb_ed->setFixedHeight(20);
-    ui->lb_ed->setMaxLength(10);
-    ui->input_tip_wid->hide();
+	ui->lb_ed->SetMaxLength(21);
+	ui->lb_ed->move(2, 2);
+	ui->lb_ed->setFixedHeight(20);
+	ui->lb_ed->setMaxLength(10);
+	ui->input_tip_wid->hide();
 
     _tip_cur_point = QPoint(5, 5);
 
-    _tip_data = { "同学","家人","菜鸟教程","C++ Primer","Rust 程序设计",
-                             "父与子学Python","nodejs开发指南","go 语言开发指南",
-                                "游戏伙伴","金融投资","微信读书","拼多多拼友" };
+	_tip_data = { "同学","家人","菜鸟教程","C++ Primer","Rust 程序设计",
+							 "父与子学Python","nodejs开发指南","go 语言开发指南",
+								"游戏伙伴","金融投资","微信读书","拼多多拼友" };
 
     connect(ui->more_lb, &ClickedOnceLabel::clicked, this, &ApplyFriend::ShowMoreLabel);
     InitTipLbs();
@@ -118,11 +118,8 @@ bool ApplyFriend::eventFilter(QObject *obj, QEvent *event)
 
 void ApplyFriend::SetSearchInfo(std::shared_ptr<SearchInfo> si)
 {
-
     _si = si;
-    qDebug() <<_si->_name ;    //打印出wjf
     auto applyname = UserMgr::GetInstance()->GetName();
-    qDebug() << "w22";    // 无法正常打印
     auto bakname = si->_name;
     ui->name_ed->setText(applyname);
     ui->back_ed->setText(bakname);
@@ -482,29 +479,29 @@ void ApplyFriend::SlotApplySure()
 {
     qDebug()<<"Slot Apply Sure called" ;
     //发送请求逻辑
-//    QJsonObject jsonObj;
-//    auto uid = UserMgr::GetInstance()->GetUid();
-//    jsonObj["uid"] = uid;
-//    auto name = ui->name_ed->text();
-//    if(name.isEmpty()){
-//        name = ui->name_ed->placeholderText();
-//    }
+    QJsonObject jsonObj;
+    auto uid = UserMgr::GetInstance()->GetUid();
+    jsonObj["uid"] = uid;
+    auto name = ui->name_ed->text();
+    if(name.isEmpty()){
+        name = ui->name_ed->placeholderText();
+    }
 
-//    jsonObj["applyname"] = name;
+    jsonObj["applyname"] = name;
 
-//    auto bakname = ui->back_ed->text();
-//    if(bakname.isEmpty()){
-//        bakname = ui->back_ed->placeholderText();
-//    }
+    auto bakname = ui->back_ed->text();
+    if(bakname.isEmpty()){
+        bakname = ui->back_ed->placeholderText();
+    }
 
-//    jsonObj["bakname"] = bakname;
-//    jsonObj["touid"] = _si->_uid;
+    jsonObj["bakname"] = bakname;
+    jsonObj["touid"] = _si->_uid;
 
-//    QJsonDocument doc(jsonObj);
-//    QByteArray jsonData = doc.toJson(QJsonDocument::Compact);
+    QJsonDocument doc(jsonObj);
+    QByteArray jsonData = doc.toJson(QJsonDocument::Compact);
 
-//    //发送tcp请求给chat server
-//    emit TcpMgr::GetInstance()->sig_send_data(ReqId::ID_ADD_FRIEND_REQ, jsonData);
+    //发送tcp请求给chat server
+    emit TcpMgr::GetInstance()->sig_send_data(ReqId::ID_ADD_FRIEND_REQ, jsonData);
     this->hide();
     deleteLater();
 }
@@ -512,6 +509,9 @@ void ApplyFriend::SlotApplySure()
 void ApplyFriend::SlotApplyCancel()
 {
     qDebug() << "Slot Apply Cancel";
+
+
+
     this->hide();
     deleteLater();
 }

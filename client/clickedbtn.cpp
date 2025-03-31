@@ -1,18 +1,19 @@
 #include "clickedbtn.h"
+#include <QVariant>
 #include "global.h"
+#include <QKeyEvent>
 
-// 构造函数，设置鼠标悬停时的光标样式为手型
 ClickedBtn::ClickedBtn(QWidget *parent):QPushButton (parent)
 {
-      setCursor(Qt::PointingHandCursor);
-      setFocusPolicy(Qt::NoFocus);
+    setCursor(Qt::PointingHandCursor); // 设置光标为小手
+    setFocusPolicy(Qt::NoFocus);
 }
 
 ClickedBtn::~ClickedBtn(){
 
 }
 
-// 设置按钮的不同状态图片，并更新样式
+
 void ClickedBtn::SetState(QString normal, QString hover, QString press)
 {
     _hover = hover;
@@ -23,7 +24,6 @@ void ClickedBtn::SetState(QString normal, QString hover, QString press)
     update();
 }
 
-// 处理鼠标进入事件，设置按钮的状态为悬停状态并更新样式
 void ClickedBtn::enterEvent(QEvent *event)
 {
     setProperty("state",_hover);
@@ -40,7 +40,6 @@ void ClickedBtn::leaveEvent(QEvent *event)
     QPushButton::leaveEvent(event);
 }
 
-// 处理鼠标按下事件，设置按钮的状态为按下状态并更新样式
 void ClickedBtn::mousePressEvent(QMouseEvent *event)
 {
     setProperty("state",_press);
@@ -49,7 +48,6 @@ void ClickedBtn::mousePressEvent(QMouseEvent *event)
     QPushButton::mousePressEvent(event);
 }
 
-// 处理鼠标释放事件，设置按钮的状态为悬停状态并更新样式
 void ClickedBtn::mouseReleaseEvent(QMouseEvent *event)
 {
     setProperty("state",_hover);

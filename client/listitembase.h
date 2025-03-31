@@ -12,9 +12,7 @@ public:
 
     ListItemType GetItemType();
 protected:
-    virtual void paintEvent(QPaintEvent *event) override;
-
-
+    void paintEvent(QPaintEvent* event);
 private:
     ListItemType _itemType;
 

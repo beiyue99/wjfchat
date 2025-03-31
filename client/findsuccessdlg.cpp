@@ -18,6 +18,10 @@ FindSuccessDlg::FindSuccessDlg(QWidget *parent) :
     QString pix_path = QDir::toNativeSeparators(app_path +
                              QDir::separator() + "static"+QDir::separator()+"head_1.jpg");
     QPixmap head_pix(pix_path);
+    if (head_pix.isNull()) {
+        qDebug() << "Error: Failed to load pixmap5!";
+        return;  // 或者使用一个默认图片
+    }
     head_pix = head_pix.scaled(ui->head_lb->size(),
             Qt::KeepAspectRatio, Qt::SmoothTransformation);
     ui->head_lb->setPixmap(head_pix);

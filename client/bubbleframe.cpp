@@ -1,5 +1,6 @@
-#include "bubbleframe.h"
+﻿#include "BubbleFrame.h"
 #include <QPainter>
+#include <QDebug>
 const int WIDTH_SANJIAO  = 8;  //三角宽
 BubbleFrame::BubbleFrame(ChatRole role, QWidget *parent)
     :QFrame(parent)
@@ -15,6 +16,11 @@ BubbleFrame::BubbleFrame(ChatRole role, QWidget *parent)
     this->setLayout(m_pHLayout);
 }
 
+void BubbleFrame::setMargin(int margin)
+{
+    Q_UNUSED(margin);
+    //m_margin = margin;
+}
 
 void BubbleFrame::setWidget(QWidget *w)
 {
@@ -24,12 +30,6 @@ void BubbleFrame::setWidget(QWidget *w)
         m_pHLayout->addWidget(w);
     }
 }
-void BubbleFrame::setMargin(int margin)
-{
-    Q_UNUSED(margin);
-    //m_margin = margin;
-}
-
 
 void BubbleFrame::paintEvent(QPaintEvent *e)
 {

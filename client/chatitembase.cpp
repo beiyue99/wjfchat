@@ -1,5 +1,7 @@
-#include "chatitembase.h"
-
+﻿#include "ChatItemBase.h"
+#include <QFont>
+#include <QVBoxLayout>
+#include "BubbleFrame.h"
 ChatItemBase::ChatItemBase(ChatRole role, QWidget *parent)
     : QWidget(parent)
     , m_role(role)
@@ -42,11 +44,6 @@ ChatItemBase::ChatItemBase(ChatRole role, QWidget *parent)
     this->setLayout(pGLayout);
 }
 
-
-
-
-
-
 void ChatItemBase::setUserName(const QString &name)
 {
     m_pNameLabel->setText(name);
@@ -56,7 +53,6 @@ void ChatItemBase::setUserIcon(const QPixmap &icon)
 {
     m_pIconLabel->setPixmap(icon);
 }
-
 
 void ChatItemBase::setWidget(QWidget *w)
 {

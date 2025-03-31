@@ -1,11 +1,9 @@
-#ifndef BUBBLEFRAME_H
-#define BUBBLEFRAME_H
-#include <QFrame>
-#include <QWidget>
-#include <QPaintEvent>
-#include <QLayout>
-#include "global.h"
+﻿#ifndef BUBBLE_H
+#define BUBBLE_H
 
+#include <QFrame>
+#include "global.h"
+#include <QHBoxLayout>
 class BubbleFrame : public QFrame
 {
     Q_OBJECT
@@ -19,6 +17,7 @@ protected:
 private:
     QHBoxLayout *m_pHLayout;
     ChatRole m_role;
-    int m_margin;
+     int      m_margin;
 };
-#endif // BUBBLEFRAME_H
+
+#endif // BUBBLE_H

@@ -50,6 +50,9 @@
      <property name="text">
       <string>查找 uid/name</string>
      </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
     </widget>
    </item>
    <item>
