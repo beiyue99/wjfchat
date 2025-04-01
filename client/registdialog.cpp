@@ -1,5 +1,5 @@
-#include "RegistDialog.h"
-#include "ui_RegistDialog.h"
+#include "registdialog.h"
+#include "ui_registdialog.h"
 #include <QRegularExpression>
 #include "global.h"
 #include "httpmgr.h"
@@ -11,10 +11,10 @@ RegistDialog::RegistDialog(QWidget *parent) :
     ui(new Ui::RegistDialog),_countdown(5)
 {
     ui->setupUi(this);
-    ui->userEdit->setValidator(new QRegExpValidator(QRegExp("[a-zA-Z0-9]+$")));
+    ui->user_edit->setValidator(new QRegExpValidator(QRegExp("[a-zA-Z0-9]+$")));
     //设置密码格式隐藏
-    ui->pass_Edit->setEchoMode(QLineEdit::Password);
-    ui->confirm_Edit->setEchoMode(QLineEdit::Password);
+    ui->pass_edit->setEchoMode(QLineEdit::Password);
+    ui->confirm_edit->setEchoMode(QLineEdit::Password);
     ui->err_tip->setProperty("state","normal");
     repolish(ui->err_tip);
     connect(HttpMgr::GetInstance().get(), &HttpMgr::sig_reg_mod_finish, this,
@@ -23,23 +23,23 @@ RegistDialog::RegistDialog(QWidget *parent) :
     //day11 设定输入框输入后清空字符串
     ui->err_tip->clear();
 
-    connect(ui->userEdit,&QLineEdit::editingFinished,this,[this](){
+    connect(ui->user_edit,&QLineEdit::editingFinished,this,[this](){
         checkUserValid();
     });
 
-    connect(ui->email_Edit, &QLineEdit::editingFinished, this, [this](){
+    connect(ui->email_edit, &QLineEdit::editingFinished, this, [this](){
         checkEmailValid();
     });
 
-    connect(ui->pass_Edit, &QLineEdit::editingFinished, this, [this](){
+    connect(ui->pass_edit, &QLineEdit::editingFinished, this, [this](){
         checkPassValid();
     });
 
-    connect(ui->confirm_Edit, &QLineEdit::editingFinished, this, [this](){
+    connect(ui->confirm_edit, &QLineEdit::editingFinished, this, [this](){
         checkConfirmValid();
     });
 
-    connect(ui->varify_Edit, &QLineEdit::editingFinished, this, [this](){
+    connect(ui->varify_edit, &QLineEdit::editingFinished, this, [this](){
          checkVarifyValid();
     });
 
@@ -57,9 +57,9 @@ RegistDialog::RegistDialog(QWidget *parent) :
     connect(ui->pass_visible, &ClickedLabel::clicked, this, [this]() {
         auto state = ui->pass_visible->GetCurState();
         if(state == ClickLbState::Normal){
-            ui->pass_Edit->setEchoMode(QLineEdit::Password);
+            ui->pass_edit->setEchoMode(QLineEdit::Password);
         }else{
-             ui->pass_Edit->setEchoMode(QLineEdit::Normal);
+             ui->pass_edit->setEchoMode(QLineEdit::Normal);
         }
         qDebug() << "Label was clicked!";
     });
@@ -67,9 +67,9 @@ RegistDialog::RegistDialog(QWidget *parent) :
     connect(ui->confirm_visible, &ClickedLabel::clicked, this, [this]() {
         auto state = ui->confirm_visible->GetCurState();
         if(state == ClickLbState::Normal){
-            ui->confirm_Edit->setEchoMode(QLineEdit::Password);
+            ui->confirm_edit->setEchoMode(QLineEdit::Password);
         }else{
-             ui->confirm_Edit->setEchoMode(QLineEdit::Normal);
+             ui->confirm_edit->setEchoMode(QLineEdit::Normal);
         }
         qDebug() << "Label was clicked!";
     });
@@ -99,7 +99,7 @@ void RegistDialog::on_get_code_clicked()
 {
     qDebug()<<"receive varify btn clicked ";
     //验证邮箱的地址正则表达式
-    auto email = ui->email_Edit->text();
+    auto email = ui->email_edit->text();
     bool valid = checkEmailValid();
     if(valid){
         //发送http请求获取验证码
@@ -141,7 +141,7 @@ void RegistDialog::slot_reg_mod_finish(ReqId id, QString res, ErrorCodes err)
 
 bool RegistDialog::checkUserValid()
 {
-    if(ui->userEdit->text() == ""){
+    if(ui->user_edit->text() == ""){
         AddTipErr(TipErr::TIP_USER_ERR, tr("用户名不能为空"));
         return false;
     }
@@ -153,7 +153,7 @@ bool RegistDialog::checkUserValid()
 bool RegistDialog::checkEmailValid()
 {
     //验证邮箱的地址正则表达式
-    auto email = ui->email_Edit->text();
+    auto email = ui->email_edit->text();
     // 邮箱地址的正则表达式
     QRegularExpression regex(R"((\w+)(\.|_)?(\w*)@(\w+)(\.(\w+))+)");
     bool match = regex.match(email).hasMatch(); // 执行正则表达式匹配
@@ -169,8 +169,8 @@ bool RegistDialog::checkEmailValid()
 
 bool RegistDialog::checkPassValid()
 {
-    auto pass = ui->pass_Edit->text();
-    auto confirm = ui->confirm_Edit->text();
+    auto pass = ui->pass_edit->text();
+    auto confirm = ui->confirm_edit->text();
 
     if(pass.length() < 6 || pass.length()>15){
         //提示长度不准确
@@ -203,7 +203,7 @@ bool RegistDialog::checkPassValid()
 
 bool RegistDialog::checkVarifyValid()
 {
-    auto pass = ui->varify_Edit->text();
+    auto pass = ui->varify_edit->text();
     if(pass.isEmpty()){
         AddTipErr(TipErr::TIP_VARIFY_ERR, tr("验证码不能为空"));
         return false;
@@ -215,8 +215,8 @@ bool RegistDialog::checkVarifyValid()
 
 bool RegistDialog::checkConfirmValid()
 {
-    auto pass = ui->pass_Edit->text();
-    auto confirm = ui->confirm_Edit->text();
+    auto pass = ui->pass_edit->text();
+    auto confirm = ui->confirm_edit->text();
 
     if(confirm.length() < 6 || confirm.length() > 15 ){
         //提示长度不准确
@@ -345,18 +345,18 @@ void RegistDialog::on_sure_btn_clicked()
 
     //day11 发送http请求注册用户
     QJsonObject json_obj;
-    json_obj["user"] = ui->userEdit->text();
-    json_obj["email"] = ui->email_Edit->text();
-    json_obj["passwd"] = xorString(ui->pass_Edit->text());
+    json_obj["user"] = ui->user_edit->text();
+    json_obj["email"] = ui->email_edit->text();
+    json_obj["passwd"] = xorString(ui->pass_edit->text());
     json_obj["sex"] = 0;
 
     int randomValue = QRandomGenerator::global()->bounded(100); // 生成0到99之间的随机整数
     int head_i = randomValue % heads.size();
 
     json_obj["icon"] = heads[head_i];
-    json_obj["nick"] = ui->userEdit->text();
-    json_obj["confirm"] = xorString(ui->confirm_Edit->text());
-    json_obj["varifycode"] = ui->varify_Edit->text();
+    json_obj["nick"] = ui->user_edit->text();
+    json_obj["confirm"] = xorString(ui->confirm_edit->text());
+    json_obj["varifycode"] = ui->varify_edit->text();
     HttpMgr::GetInstance()->PostHttpReq(QUrl(gate_url_prefix+"/user_register"),
                  json_obj, ReqId::ID_REG_USER,Modules::REGISTERMOD);
 }

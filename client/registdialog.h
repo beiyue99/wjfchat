@@ -1,5 +1,5 @@
-#ifndef RegistDialog_H
-#define RegistDialog_H
+#ifndef REGISTDIALOG_H
+#define REGISTDIALOG_H
 
 #include <QDialog>
 #include "global.h"
@@ -51,4 +51,4 @@ signals:
     void sigSwitchLogin();
 };
 
-#endif // RegistDialog_H
+#endif

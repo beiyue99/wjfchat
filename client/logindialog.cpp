@@ -33,7 +33,6 @@ LoginDialog::LoginDialog(QWidget *parent) :
 
 LoginDialog::~LoginDialog()
 {
-    qDebug()<<"destruct LoginDlg";
     delete ui;
 }
 
@@ -110,7 +109,6 @@ void LoginDialog::showTip(QString str, bool b_ok)
 
 void LoginDialog::slot_forget_pwd()
 {
-    qDebug()<<"slot forget pwd";
     emit switchReset();
 }
 
@@ -160,7 +158,6 @@ bool LoginDialog::enableBtn(bool enabled)
 
 void LoginDialog::on_login_btn_clicked()
 {
-    qDebug()<<"login btn clicked";
     if(checkUserValid() == false){
         return;
     }

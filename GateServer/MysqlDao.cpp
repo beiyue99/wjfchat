@@ -9,8 +9,7 @@ MysqlDao::MysqlDao()
 	const auto& pwd = cfg["Mysql"]["Passwd"];
 	const auto& schema = cfg["Mysql"]["Schema"];
 	const auto& user = cfg["Mysql"]["User"];
-	std::string connectionUrl = "tcp://" + host + ":" + port;
-	pool_.reset(new MySqlPool(connectionUrl, user, pwd,schema, 5));
+	pool_.reset(new MySqlPool(host+":"+port, user, pwd,schema, 5));
 }
 
 MysqlDao::~MysqlDao(){
@@ -124,6 +123,10 @@ int MysqlDao::RegUserTransaction(const std::string& name, const std::string& ema
 			con->_con->rollback();
 			std::cout << "name " << name << " exist";
 			return 0;
+		}
+		else
+		{
+			std::cout << "name " << name << " have not exist!" << std::endl;
 		}
 
 		// 准备更新用户id

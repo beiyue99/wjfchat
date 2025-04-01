@@ -44,7 +44,7 @@ LogicSystem::LogicSystem()
     // 注册一个 GET 请求处理函数，路径为 "/get_test"
     RegGet("/get_test", [](std::shared_ptr<HttpConnection> connection) {
         // 使用 beast::ostream 将响应内容写入到 HTTP 响应体中
-        beast::ostream(connection->_response.body()) << "receive get_test req\r\n";
+        beast::ostream(connection->_response.body()) << "receive get_test req" << std::endl;
 
         // 遍历 GET 请求的参数，并将参数名和参数值写入到响应体中
         int i = 0;
@@ -55,6 +55,45 @@ LogicSystem::LogicSystem()
         }
         });
 
+
+	RegPost("/test_procedure", [](std::shared_ptr<HttpConnection> connection) {
+		auto body_str = boost::beast::buffers_to_string(connection->_request.body().data());
+		std::cout << "receive body is " << body_str << std::endl;
+		connection->_response.set(http::field::content_type, "text/json");
+		Json::Value root;
+		Json::Reader reader;
+		Json::Value src_root;
+		bool parse_success = reader.parse(body_str, src_root);
+		if (!parse_success) {
+			std::cout << "Failed to parse JSON data!" << std::endl;
+			root["error"] = ErrorCodes::Error_Json;
+			std::string jsonstr = root.toStyledString();
+			beast::ostream(connection->_response.body()) << jsonstr;
+			return true;
+		}
+
+		if (!src_root.isMember("email")) {
+			std::cout << "Failed to parse JSON data!" << std::endl;
+			root["error"] = ErrorCodes::Error_Json;
+			std::string jsonstr = root.toStyledString();
+			beast::ostream(connection->_response.body()) << jsonstr;
+			return true;
+		}
+
+		auto email = src_root["email"].asString();
+		int uid = 0;
+		std::string name = "";
+		MysqlMgr::GetInstance()->TestProcedure(email, uid, name);
+		std::cout << "email is " << email << std::endl;
+		root["error"] = ErrorCodes::Success;
+		root["email"] = src_root["email"];
+		root["name"] = name;
+		root["uid"] = uid;
+		std::string jsonstr = root.toStyledString();
+		beast::ostream(connection->_response.body()) << jsonstr;
+		return true;
+		
+	});
     // 注册一个 POST 请求处理函数，路径为 "/get_varifycode"
     RegPost("/get_varifycode", [](std::shared_ptr<HttpConnection> connection) {
         // 从 HTTP 请求体中获取数据并转换为字符串
@@ -122,6 +161,7 @@ LogicSystem::LogicSystem()
 		auto name = src_root["user"].asString();
 		auto pwd = src_root["passwd"].asString();
 		auto confirm = src_root["confirm"].asString();
+		auto icon = src_root["icon"].asString();
 		if (pwd != confirm)
 		{
 			std::cout << "pwd is not equal confirm" << std::endl;
@@ -152,7 +192,7 @@ LogicSystem::LogicSystem()
 		}
 
         //查找数据库判断用户是否存在
-        int uid = MysqlMgr::GetInstance()->RegUser(name, email, pwd);
+        int uid = MysqlMgr::GetInstance()->RegUser(name, email, pwd, icon);
         if (uid == 0 || uid == -1) {
             std::cout << " user or email exist" << std::endl;
             root["error"] = ErrorCodes::UserExist;
@@ -163,11 +203,13 @@ LogicSystem::LogicSystem()
 
 
         root["error"] = 0;
-        root["email"] = email;
+        
 		root["uid"] = uid;
-		root["name"] = name; 
+		root["email"] = email;
+		root ["user"]= name;
 		root["passwd"] = pwd;
 		root["confirm"] = confirm;  
+		root["icon"] = icon;
 		root["varifycode"] = src_root["varifycode"].asString();
 
 		std::string jsonstr = root.toStyledString();
