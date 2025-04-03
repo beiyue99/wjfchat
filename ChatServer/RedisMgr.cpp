@@ -72,7 +72,6 @@ bool RedisMgr::Set(const std::string &key, const std::string &value){
 
 	//执行成功 释放redisCommand执行后返回的redisReply所占用的内存
 	freeReplyObject(reply);
-	std::cout << "Execut command [ SET " << key << "  " << value << " ] success ! " << std::endl;
 	_con_pool->returnConnection(connect);
 	return true;
 }
@@ -99,7 +98,6 @@ bool RedisMgr::LPush(const std::string &key, const std::string &value)
 		return false;
 	}
 
-	std::cout << "Execut command [ LPUSH " << key << "  " << value << " ] success ! " << std::endl;
 	freeReplyObject(reply);
 	_con_pool->returnConnection(connect);
 	return true;
@@ -125,7 +123,6 @@ bool RedisMgr::LPop(const std::string &key, std::string& value){
 	}
 
 	value = reply->str;
-	std::cout << "Execut command [ LPOP " << key <<  " ] success ! " << std::endl;
 	freeReplyObject(reply);
 	_con_pool->returnConnection(connect);
 	return true;
@@ -152,7 +149,6 @@ bool RedisMgr::RPush(const std::string& key, const std::string& value) {
 		return false;
 	}
 
-	std::cout << "Execut command [ RPUSH " << key << "  " << value << " ] success ! " << std::endl;
 	freeReplyObject(reply);
 	_con_pool->returnConnection(connect);
 	return true;
@@ -176,7 +172,6 @@ bool RedisMgr::RPop(const std::string& key, std::string& value) {
 		return false;
 	}
 	value = reply->str;
-	std::cout << "Execut command [ RPOP " << key << " ] success ! " << std::endl;
 	freeReplyObject(reply);
 	_con_pool->returnConnection(connect);
 	return true;
@@ -201,7 +196,6 @@ bool RedisMgr::HSet(const std::string &key, const std::string &hkey, const std::
 		return false;
 	}
 
-	std::cout << "Execut command [ HSet " << key << "  " << hkey << "  " << value << " ] success ! " << std::endl;
 	freeReplyObject(reply);
 	_con_pool->returnConnection(connect);
 	return true;
@@ -237,7 +231,6 @@ bool RedisMgr::HSet(const char* key, const char* hkey, const char* hvalue, size_
 		_con_pool->returnConnection(connect);
 		return false;
 	}
-	std::cout << "Execut command [ HSet " << key << "  " << hkey << "  " << hvalue << " ] success ! " << std::endl;
 	freeReplyObject(reply);
 	_con_pool->returnConnection(connect);
 	return true;
@@ -275,7 +268,6 @@ std::string RedisMgr::HGet(const std::string &key, const std::string &hkey)
 	std::string value = reply->str;
 	freeReplyObject(reply);
 	_con_pool->returnConnection(connect);
-	std::cout << "Execut command [ HGet " << key << " " << hkey << " ] success ! " << std::endl;
 	return value;
 }
 
@@ -325,7 +317,6 @@ bool RedisMgr::Del(const std::string &key)
 		return false;
 	}
 
-	std::cout << "Execut command [ Del " << key << " ] success ! " << std::endl;
 	 freeReplyObject(reply);
 	 _con_pool->returnConnection(connect);
 	 return true;

@@ -28,7 +28,6 @@ public:
 
 			//执行成功 释放redisCommand执行后返回的redisReply所占用的内存
 			freeReplyObject(reply);
-			std::cout << "认证成功" << std::endl;
 			connections_.push(context);
 		}
 

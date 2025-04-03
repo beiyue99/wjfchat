@@ -58,7 +58,7 @@ LogicSystem::LogicSystem()
 
 	RegPost("/test_procedure", [](std::shared_ptr<HttpConnection> connection) {
 		auto body_str = boost::beast::buffers_to_string(connection->_request.body().data());
-		std::cout << "receive body is " << body_str << std::endl;
+		//std::cout << "receive body is " << body_str << std::endl;
 		connection->_response.set(http::field::content_type, "text/json");
 		Json::Value root;
 		Json::Reader reader;
@@ -98,7 +98,7 @@ LogicSystem::LogicSystem()
     RegPost("/get_varifycode", [](std::shared_ptr<HttpConnection> connection) {
         // 从 HTTP 请求体中获取数据并转换为字符串
         auto body_str = boost::beast::buffers_to_string(connection->_request.body().data());
-        std::cout << "receive body is " << body_str << std::endl;
+        //std::cout << "receive body is " << body_str << std::endl;
 
         // 设置 HTTP 响应的内容类型为 JSON
         connection->_response.set(http::field::content_type, "text/json");
@@ -143,7 +143,7 @@ LogicSystem::LogicSystem()
 
 	RegPost("/user_register", [](std::shared_ptr<HttpConnection> connection) {
 		auto body_str = boost::beast::buffers_to_string(connection->_request.body().data());
-		std::cout << "receive body is " << body_str << std::endl;
+		//std::cout << "receive body is " << body_str << std::endl;
 		connection->_response.set(http::field::content_type, "text/json");
 		Json::Value root;
 		Json::Reader reader;
@@ -220,7 +220,6 @@ LogicSystem::LogicSystem()
     //重置回调逻辑
     RegPost("/reset_pwd", [](std::shared_ptr<HttpConnection> connection) {
         auto body_str = boost::beast::buffers_to_string(connection->_request.body().data());
-        std::cout << "receive body is " << body_str << std::endl;
         connection->_response.set(http::field::content_type, "text/json");
         Json::Value root;
         Json::Reader reader;
@@ -286,7 +285,7 @@ LogicSystem::LogicSystem()
     //用户登录逻辑
     RegPost("/user_login", [](std::shared_ptr<HttpConnection> connection) {
         auto body_str = boost::beast::buffers_to_string(connection->_request.body().data());
-        std::cout << "receive body is " << body_str << std::endl;
+        //std::cout << "receive body is " << body_str << std::endl;
         connection->_response.set(http::field::content_type, "text/json");
         Json::Value root;
         Json::Reader reader;
@@ -306,7 +305,6 @@ LogicSystem::LogicSystem()
         //查询数据库判断用户名和密码是否匹配
         bool pwd_valid = MysqlMgr::GetInstance()->CheckPwd(email, pwd, userInfo);
         if (!pwd_valid) {
-            std::cout << " user pwd not match" << std::endl;
             root["error"] = ErrorCodes::PasswdInvalid;
             std::string jsonstr = root.toStyledString();
             beast::ostream(connection->_response.body()) << jsonstr;

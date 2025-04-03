@@ -121,14 +121,9 @@ int MysqlDao::RegUserTransaction(const std::string& name, const std::string& ema
 		auto name_exist = res_name->next();
 		if (name_exist) {
 			con->_con->rollback();
-			std::cout << "name " << name << " exist";
+			std::cout << "name " << name << " has exist";
 			return 0;
 		}
-		else
-		{
-			std::cout << "name " << name << " have not exist!" << std::endl;
-		}
-
 		// 准备更新用户id
 		std::unique_ptr<sql::PreparedStatement> pstmt_upid(con->_con->prepareStatement("UPDATE user_id SET id = id + 1"));
 
@@ -262,14 +257,17 @@ bool MysqlDao::CheckPwd(const std::string& email, const std::string& pwd, UserIn
 		std::unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
 		std::string origin_pwd = "";
 		// 遍历结果集
-
+		if (res->rowsCount() == 0) {
+			std::cout << "用户名不存在，请先完成注册！" << std::endl;
+			return false;
+		}
 		while (res->next()) {
 			origin_pwd = res->getString("pwd");
 			break;
 		}
 
 		if (pwd != origin_pwd) {
-			std::cout << "用户输入Password: " << pwd << std::endl;
+			std::cout << "密码错误，请重试！" << std::endl;
 			return false;
 		}
 		userInfo.name = res->getString("name");

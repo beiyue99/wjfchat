@@ -30,7 +30,7 @@ void RunServer() {
 
 	// 构建并启动gRPC服务器
 	std::unique_ptr<grpc::Server> server(builder.BuildAndStart());
-	std::cout << "Server listening on " << server_address << std::endl;
+	std::cout << "StatusServer listening on " << server_address << std::endl;
 
 	// 创建Boost.Asio的io_context
 	boost::asio::io_context io_context;
