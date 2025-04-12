@@ -143,6 +143,7 @@ struct UserInfo {
 	std::string pwd;
 	int uid;
 	std::string email;
+	std::string icon;
 };
 
 
@@ -152,7 +153,9 @@ class MysqlDao
 public:
 	MysqlDao();
 	~MysqlDao();
+	// 注册用户
 	int RegUser(const std::string& name, const std::string& email, const std::string& pwd);
+	// 注册用户事务
 	int RegUserTransaction(const std::string& name, const std::string& email, const std::string& pwd, const std::string& icon);
 	bool CheckEmail(const std::string& name, const std::string & email);
 	bool UpdatePwd(const std::string& name, const std::string& newpwd);

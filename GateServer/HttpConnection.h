@@ -1,31 +1,34 @@
 #pragma once
 #include "const.h"
 
-class HttpConnection:public std::enable_shared_from_this<HttpConnection>
+// 表示一个 HTTP 连接，负责解析请求和返回响应
+class HttpConnection : public std::enable_shared_from_this<HttpConnection>
 {
-public:
-	friend class LogicSystem;
-	HttpConnection(boost::asio::io_context& ioc);
-	void Start();  //调用异步读，读完调用HandleReq处理请求
-	tcp::socket& GetSocket()
-	{
-		return _socket;
-	}
-private:
-	void CheckDeadline();   //超时检测
-	void WriteResponse();  //收到数据后的应答函数
-	void HandleReq(); //处理请求
-	void PreParseGetParam();//请求的参数解析
-	
-	tcp::socket _socket;  //连接的socket
-	beast::flat_buffer _buffer{ 8192 }; //接收数据的buffer
-	http::request<http::dynamic_body> _request; //接收对方的请求
-	http::response<http::dynamic_body> _response; //回复对方
-	net::steady_timer deadline_{
-		_socket.get_executor(),std::chrono::seconds(60)//60秒超时 
-	//定时器在底层事件循环，需要调度器
-	};
-	std::string _get_url;   //请求url
-	std::unordered_map<std::string, std::string> _get_params; //请求参数解析后，键值对储存在这里
-};
+    friend class LogicSystem; // 允许 LogicSystem 访问私有成员
 
+public:
+    HttpConnection(boost::asio::io_context& ioc); // 构造函数，初始化 socket
+
+    void Start(); // 启动连接处理，异步读取请求数据
+    void PreParseGetParam(); // 预处理 GET 请求的参数
+    tcp::socket& GetSocket() { return _socket; } // 获取当前连接的 socket
+
+private:
+    void CheckDeadline(); // 检查连接是否超时并关闭
+    void WriteResponse(); // 写入并发送 HTTP 响应
+    void HandleReq(); // 处理 HTTP 请求逻辑
+
+    tcp::socket  _socket; // 与客户端通信的 socket
+
+    beast::flat_buffer  _buffer{ 8192 }; // 用于接收数据的缓冲区
+
+    http::request<http::dynamic_body> _request; // 存储客户端请求
+    http::response<http::dynamic_body> _response; // 构造服务端响应
+
+    net::steady_timer deadline_{
+        _socket.get_executor(), std::chrono::seconds(60)
+    }; // 定时器，用于检测连接是否超时
+
+    std::string _get_url; // GET 请求中的 URL
+    std::unordered_map<std::string, std::string> _get_params; // 存储 GET 请求的参数
+};

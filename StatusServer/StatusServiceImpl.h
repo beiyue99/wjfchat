@@ -13,26 +13,7 @@ using message::LoginReq;
 using message::LoginRsp;
 using message::StatusService;
 
-//class  ChatServer {
-//public:
-//	ChatServer():host(""),port(""),name(""),con_count(0){}
-//	ChatServer(const ChatServer& cs):host(cs.host), port(cs.port), name(cs.name), con_count(cs.con_count){}
-//	ChatServer& operator=(const ChatServer& cs) {
-//		if (&cs == this) {
-//			return *this;
-//		}
-//
-//		host = cs.host;
-//		name = cs.name;
-//		port = cs.port;
-//		con_count = cs.con_count;
-//		return *this;
-//	}
-//	std::string host;
-//	std::string port;
-//	std::string name;
-//	int con_count;
-//};
+
 
 struct ChatServer {
 	std::string host;
@@ -46,16 +27,14 @@ struct ChatServer {
 class StatusServiceImpl final : public StatusService::Service
 {
 public:
-	StatusServiceImpl();
+	StatusServiceImpl(); 
 	Status GetChatServer(ServerContext* context, const GetChatServerReq* request,
 		GetChatServerRsp* reply) override;
-	Status Login(ServerContext* context, const LoginReq* request,
-		LoginRsp* reply) override;
+	Status Login(ServerContext* context, const LoginReq* request,LoginRsp* reply) override;
 private:
-	void insertToken(int uid, std::string token);
+	void insertToken(int uid, std::string token);  // 将 uid 对应的 token 写入 Redis
 	ChatServer getChatServer();
 	std::unordered_map<std::string, ChatServer> _servers; // 服务器列表, key为服务器名字, value为服务器
 	std::mutex _server_mtx;
-	//std::unordered_map<int, std::string> _tokens; // 存token，key为uid, value为token	  先删掉，用户多了token会很多，所以用redis，不能直接存在内存
 };
 

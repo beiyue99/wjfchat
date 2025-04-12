@@ -1,6 +1,8 @@
 #ifndef ADDUSERITEM_H
 #define ADDUSERITEM_H
 
+
+// 好友列表中一个用户项
 #include <QWidget>
 #include "listitembase.h"
 namespace Ui {

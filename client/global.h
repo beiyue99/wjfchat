@@ -40,46 +40,45 @@ enum ReqId{
 };
 
 enum ErrorCodes{
-    SUCCESS = 0,
-    ERR_JSON = 1, //Json解析失败
-    ERR_NETWORK = 2,
+    SUCCESS = 0,     // 操作成功
+    ERR_JSON = 1,    // JSON 解析失败
+    ERR_NETWORK = 2, // 网络错误
 };
 
 enum Modules{
-    REGISTERMOD = 0,
-    RESETMOD = 1,
-    LOGINMOD = 2,
+    REGISTERMOD = 0, // 注册模块
+    RESETMOD = 1,    // 重置密码模块
+    LOGINMOD = 2,    // 登录模块
 };
 
 enum TipErr{
-    TIP_SUCCESS = 0,
-    TIP_EMAIL_ERR = 1,
-    TIP_PWD_ERR = 2,
-    TIP_CONFIRM_ERR = 3,
-    TIP_PWD_CONFIRM = 4,
-    TIP_VARIFY_ERR = 5,
-    TIP_USER_ERR = 6
+    TIP_SUCCESS = 0,      // 成功
+    TIP_EMAIL_ERR = 1,    // 邮箱错误
+    TIP_PWD_ERR = 2,      // 密码错误
+    TIP_CONFIRM_ERR = 3,  // 确认密码错误
+    TIP_PWD_CONFIRM = 4,  // 两次输入密码错误
+    TIP_VARIFY_ERR = 5,   // 验证码错误
+    TIP_USER_ERR = 6      // 用户错误
 };
 
 enum ClickLbState{
-    Normal = 0,
-    Selected = 1
+    Normal = 0,   // 正常状态
+    Selected = 1  // 选中状态
 };
 
 
-extern QString gate_url_prefix;
+extern QString gate_url_prefix;  //服务器网关地址前缀
 
 
 struct ServerInfo{
-    QString Host;
-    QString Port;
-    QString Token;
-    int Uid;
+    QString Host;  // 服务器地址
+    QString Port;  // 服务器端口
+    QString Token; // 认证 Token
+    int Uid;       // 用户 ID
 };
 
 enum class ChatRole
 {
-
     Self,
     Other
 };

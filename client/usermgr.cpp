@@ -203,7 +203,7 @@ bool UserMgr::IsLoadConFin()
     return false;
 }
 
-bool UserMgr::CheckFriendById(int uid)
+bool UserMgr ::CheckFriendById(int uid)
 {
     auto iter = _friend_map.find(uid);
     if(iter == _friend_map.end()){

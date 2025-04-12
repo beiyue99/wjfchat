@@ -273,7 +273,9 @@ bool MysqlDao::AddFriend(const int& from, const int& to, std::string back_name) 
 		//反过来的申请时from，验证时to
 		pstmt2->setInt(1, to); // from id
 		pstmt2->setInt(2, from);
-		pstmt2->setString(3, "");
+		auto user = GetUser(from);
+		std::string back_name2 = user->name;
+		pstmt2->setString(3, back_name2);
 		// 执行更新
 		int rowAffected2 = pstmt2->executeUpdate();
 		if (rowAffected2 < 0) {
@@ -331,6 +333,7 @@ std::shared_ptr<UserInfo> MysqlDao::GetUser(int uid)
 			user_ptr->desc = res->getString("desc");
 			user_ptr->sex = res->getInt("sex");
 			user_ptr->icon = res->getString("icon");
+			//user_ptr->back = res->getString("back");
 			user_ptr->uid = uid;
 			break;
 		}
@@ -368,11 +371,13 @@ std::shared_ptr<UserInfo> MysqlDao::GetUser(std::string name)
 			user_ptr.reset(new UserInfo);
 			user_ptr->pwd = res->getString("pwd");
 			user_ptr->email = res->getString("email");
-			user_ptr->name = res->getString("name");
+			user_ptr->name = name;
 			user_ptr->nick = res->getString("nick");
 			user_ptr->desc = res->getString("desc");
 			user_ptr->sex = res->getInt("sex");
 			user_ptr->uid = res->getInt("uid");
+			user_ptr->icon = res->getString("icon");
+			//user_ptr->back = res->getString("back");
 			break;
 		}
 		return user_ptr;
@@ -415,7 +420,9 @@ bool MysqlDao::GetApplyList(int touid, std::vector<std::shared_ptr<ApplyInfo>>& 
 			auto status = res->getInt("status");
 			auto nick = res->getString("nick");
 			auto sex = res->getInt("sex");
-			auto apply_ptr = std::make_shared<ApplyInfo>(uid, name, "", "", nick, sex, status);
+			auto icon = res->getString("icon");
+			auto desc = res->getString("desc");
+			auto apply_ptr = std::make_shared<ApplyInfo>(uid, name, desc, icon, nick, sex, status);
 			applyList.push_back(apply_ptr);
 		}
 		return true;

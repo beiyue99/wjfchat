@@ -26,7 +26,6 @@ void StateWidget::paintEvent(QPaintEvent *event)
 void StateWidget::mousePressEvent(QMouseEvent* event)  {
     if (event->button() == Qt::LeftButton) {
         if(_curstate == ClickLbState::Selected){
-            qDebug()<<"PressEvent , already to selected press: "<< _selected_press;
             //emit clicked();
             // 调用基类的mousePressEvent以保证正常的事件处理
             QWidget::mousePressEvent(event);
@@ -34,7 +33,6 @@ void StateWidget::mousePressEvent(QMouseEvent* event)  {
         }
 
         if(_curstate == ClickLbState::Normal){
-            qDebug()<<"PressEvent , change to selected press: "<< _selected_press;
             _curstate = ClickLbState::Selected;
             setProperty("state",_selected_press);
             repolish(this);
@@ -164,10 +162,16 @@ void StateWidget::AddRedPoint()
     _red_point->setVisible(false);
 }
 
-void StateWidget::ShowRedPoint(bool show)
+void StateWidget::ShowRedPoint()
 {
     _red_point->setVisible(true);
 }
+
+void StateWidget::slot_on_cancel_red()
+{
+    _red_point->setVisible(false);
+}
+
 
 
 

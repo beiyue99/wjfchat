@@ -51,7 +51,6 @@ bool ChatUserList::eventFilter(QObject *watched, QEvent *event)
                  return true;
              }
             // 滚动到底部，加载新的联系人
-            qDebug()<<"load more chat user";
             _load_pending = true;
 
             QTimer::singleShot(100, [this](){

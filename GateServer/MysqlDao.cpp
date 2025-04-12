@@ -16,6 +16,7 @@ MysqlDao::~MysqlDao(){
 	pool_->Close();
 }
 
+//该函数用于注册用户
 int MysqlDao::RegUser(const std::string& name, const std::string& email, const std::string& pwd)
 {
 	// 从连接池中获取一个数据库连接
@@ -76,6 +77,7 @@ int MysqlDao::RegUser(const std::string& name, const std::string& email, const s
 }
 
 
+// 该函数用于注册用户，并在注册过程中进行事务处理
 int MysqlDao::RegUserTransaction(const std::string& name, const std::string& email, const std::string& pwd, 
 	const std::string& icon)
 {

@@ -10,6 +10,7 @@ namespace Ui {
 class AuthenFriend;
 }
 
+// 显示好友申请的认证界面
 class AuthenFriend : public QDialog
 {
     Q_OBJECT

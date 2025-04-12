@@ -19,7 +19,6 @@ FindFailDlg::FindFailDlg(QWidget *parent) :
 
 FindFailDlg::~FindFailDlg()
 {
-    qDebug()<< "Find FailDlg destruct";
     delete ui;
 }
 

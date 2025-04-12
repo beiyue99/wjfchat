@@ -30,62 +30,99 @@ void LogicSystem::PostMsgToQue(shared_ptr < LogicNode> msg) {
 }
 
 void LogicSystem::DealMsg() {
+	// 无限循环处理逻辑消息队列中的消息
 	for (;;) {
-		std::unique_lock<std::mutex> unique_lk(_mutex);
-		//判断队列为空则用条件变量阻塞等待，并释放锁
+		std::unique_lock<std::mutex> unique_lk(_mutex); // 加锁，保护消息队列的并发访问
+
+		// 如果消息队列为空且未收到停服信号，则阻塞等待消息到来
 		while (_msg_que.empty() && !_b_stop) {
-			_consume.wait(unique_lk);
+			_consume.wait(unique_lk); // 等待其他线程投递消息并唤醒
 		}
 
-		//判断是否为关闭状态，把所有逻辑执行完后则退出循环
-		if (_b_stop ) {
+		// 如果收到停服信号（_b_stop 为 true），则把剩余消息处理完再退出
+		if (_b_stop) {
 			while (!_msg_que.empty()) {
+				// 取出队头消息节点
 				auto msg_node = _msg_que.front();
 				cout << "recv_msg id  is " << msg_node->_recvnode->_msg_id << endl;
+
+				// 根据消息 ID 查找对应的处理回调函数
 				auto call_back_iter = _fun_callbacks.find(msg_node->_recvnode->_msg_id);
 				if (call_back_iter == _fun_callbacks.end()) {
+					// 如果未注册对应回调函数，则忽略消息
 					_msg_que.pop();
 					continue;
 				}
-				call_back_iter->second(msg_node->_session, msg_node->_recvnode->_msg_id,
-					std::string(msg_node->_recvnode->_data, msg_node->_recvnode->_cur_len));
-				_msg_que.pop();
+
+				// 执行注册的回调函数，处理消息
+				call_back_iter->second(
+					msg_node->_session,                      // 会话对象
+					msg_node->_recvnode->_msg_id,           // 消息ID
+					std::string(msg_node->_recvnode->_data, // 消息内容
+						msg_node->_recvnode->_cur_len)
+				);
+
+				_msg_que.pop(); // 消息处理完后从队列中移除
 			}
-			break;
+			break; // 跳出 for 循环，线程退出
 		}
 
-		//如果没有停服，且说明队列中有数据
-		auto msg_node = _msg_que.front();
+		// 正常情况下处理消息队列（未停服）
+		auto msg_node = _msg_que.front(); // 取出消息
 		cout << "recv_msg id  is " << msg_node->_recvnode->_msg_id << endl;
+
+		// 查找是否注册了对应的消息回调处理函数
 		auto call_back_iter = _fun_callbacks.find(msg_node->_recvnode->_msg_id);
 		if (call_back_iter == _fun_callbacks.end()) {
+			// 如果未注册该消息类型的处理器，忽略并继续下一个
 			_msg_que.pop();
 			std::cout << "msg id [" << msg_node->_recvnode->_msg_id << "] handler not found" << std::endl;
 			continue;
 		}
-		call_back_iter->second(msg_node->_session, msg_node->_recvnode->_msg_id, 
-			std::string(msg_node->_recvnode->_data, msg_node->_recvnode->_cur_len));
-		_msg_que.pop();
+
+		// 找到了处理函数，执行处理
+		call_back_iter->second(
+			msg_node->_session,                       // 会话对象
+			msg_node->_recvnode->_msg_id,            // 消息ID
+			std::string(msg_node->_recvnode->_data,  // 消息内容
+				msg_node->_recvnode->_cur_len)
+		);
+
+		_msg_que.pop(); // 从队列中移除已处理的消息
 	}
 }
 
+
+
+// 注册各类消息对应的处理函数（回调函数）
+// 将不同类型的消息 ID 与对应的处理函数绑定起来，存储在 _fun_callbacks 映射中
 void LogicSystem::RegisterCallBacks() {
+
+	// 注册处理登录消息的回调函数
+	// MSG_CHAT_LOGIN 是登录请求的消息 ID
+	// LoginHandler 是用于处理登录逻辑的成员函数
 	_fun_callbacks[MSG_CHAT_LOGIN] = std::bind(&LogicSystem::LoginHandler, this,
 		placeholders::_1, placeholders::_2, placeholders::_3);
+	// bind 用于将成员函数和 this 绑定，并保留参数 _1, _2, _3 占位符，代表
+	// (std::shared_ptr<CSession>, short msgid, std::string data)
 
+	// 注册处理搜索用户请求的回调函数
 	_fun_callbacks[ID_SEARCH_USER_REQ] = std::bind(&LogicSystem::SearchInfo, this,
 		placeholders::_1, placeholders::_2, placeholders::_3);
 
+	// 注册处理添加好友申请请求的回调函数
 	_fun_callbacks[ID_ADD_FRIEND_REQ] = std::bind(&LogicSystem::AddFriendApply, this,
 		placeholders::_1, placeholders::_2, placeholders::_3);
 
+	// 注册处理好友认证（同意/拒绝添加好友）的请求处理函数
 	_fun_callbacks[ID_AUTH_FRIEND_REQ] = std::bind(&LogicSystem::AuthFriendApply, this,
 		placeholders::_1, placeholders::_2, placeholders::_3);
 
+	// 注册处理文本消息发送请求的处理函数（即聊天消息）
 	_fun_callbacks[ID_TEXT_CHAT_MSG_REQ] = std::bind(&LogicSystem::DealChatTextMsg, this,
 		placeholders::_1, placeholders::_2, placeholders::_3);
-	
 }
+
 
 void LogicSystem::LoginHandler(shared_ptr<CSession> session, const short &msg_id, const string &msg_data) {
 	Json::Reader reader;
@@ -132,6 +169,7 @@ void LogicSystem::LoginHandler(shared_ptr<CSession> session, const short &msg_id
 	rtvalue["email"] = user_info->email;
 	rtvalue["nick"] = user_info->nick;
 	rtvalue["desc"] = user_info->desc;
+	rtvalue["back"] = user_info->back;
 	rtvalue["sex"] = user_info->sex;
 	rtvalue["icon"] = user_info->icon;
 
@@ -221,10 +259,10 @@ void LogicSystem::AddFriendApply(std::shared_ptr<CSession> session, const short&
 	reader.parse(msg_data, root);
 	auto uid = root["uid"].asInt();
 	auto applyname = root["applyname"].asString();
-	auto bakname = root["bakname"].asString();
+	auto back = root["back"].asString();
 	auto touid = root["touid"].asInt();
 	std::cout << "user login uid is  " << uid << " applyname  is "
-		<< applyname << " bakname is " << bakname << " touid is " << touid << endl;
+		<< applyname << " back is " << back << " touid is " << touid << endl;
 
 	Json::Value  rtvalue;
 	rtvalue["error"] = ErrorCodes::Success;
@@ -266,12 +304,12 @@ void LogicSystem::AddFriendApply(std::shared_ptr<CSession> session, const short&
 				notify["icon"] = apply_info->icon;
 				notify["sex"] = apply_info->sex;
 				notify["nick"] = apply_info->nick;
+				notify["back"] = back;
 			}
 		
 			std::string return_str = notify.toStyledString();
 			session->Send(return_str, ID_NOTIFY_ADD_FRIEND_REQ);
 		}
-
 		return ;
 	}
 
@@ -314,6 +352,7 @@ void LogicSystem::AuthFriendApply(std::shared_ptr<CSession> session, const short
 		rtvalue["icon"] = user_info->icon;
 		rtvalue["sex"] = user_info->sex;
 		rtvalue["uid"] = touid;
+		rtvalue["back"] = back_name;
 	}
 	else {
 		rtvalue["error"] = ErrorCodes::UidInvalid;
@@ -359,6 +398,7 @@ void LogicSystem::AuthFriendApply(std::shared_ptr<CSession> session, const short
 				notify["nick"] = user_info->nick;
 				notify["icon"] = user_info->icon;
 				notify["sex"] = user_info->sex;
+				notify["back"] = back_name;
 			}
 			else {
 				notify["error"] = ErrorCodes::UidInvalid;
@@ -446,7 +486,7 @@ void LogicSystem::DealChatTextMsg(std::shared_ptr<CSession> session, const short
 }
 
 
-
+// isPureDigit作用：判断字符串是否全为数字
 bool LogicSystem::isPureDigit(const std::string& str)
 {
 	for (char c : str) {
@@ -478,7 +518,8 @@ void LogicSystem::GetUserByUid(std::string uid_str, Json::Value& rtvalue)
 		auto desc = root["desc"].asString();
 		auto sex = root["sex"].asInt();
 		auto icon = root["icon"].asString();
-		std::cout << "user  uid is  " << uid << " name  is "
+		auto back = root["back"].asString();
+		std::cout << "Redis 查到  ： user  uid is  " << uid << " name  is "
 			<< name << " pwd is " << pwd << " email is " << email <<" icon is " << icon << endl;
 
 		rtvalue["uid"] = uid;
@@ -489,6 +530,7 @@ void LogicSystem::GetUserByUid(std::string uid_str, Json::Value& rtvalue)
 		rtvalue["desc"] = desc;
 		rtvalue["sex"] = sex;
 		rtvalue["icon"] = icon;
+		rtvalue["back"] = back;
 		return;
 	}
 
@@ -512,6 +554,9 @@ void LogicSystem::GetUserByUid(std::string uid_str, Json::Value& rtvalue)
 	redis_root["desc"] = user_info->desc;
 	redis_root["sex"] = user_info->sex;
 	redis_root["icon"] = user_info->icon;
+	redis_root["back"] = user_info->back;
+	std::cout << "mysql 查到  ： user  uid is  " << uid << " name  is "
+		<< user_info->name << " pwd is " << user_info->pwd << " email is " << user_info->email << " icon is " << user_info->icon << endl;
 
 	RedisMgr::GetInstance()->Set(base_key, redis_root.toStyledString());
 
@@ -524,6 +569,7 @@ void LogicSystem::GetUserByUid(std::string uid_str, Json::Value& rtvalue)
 	rtvalue["desc"] = user_info->desc;
 	rtvalue["sex"] = user_info->sex;
 	rtvalue["icon"] = user_info->icon;
+	rtvalue["back"] = user_info->back;
 }
 
 void LogicSystem::GetUserByName(std::string name, Json::Value& rtvalue)
@@ -546,7 +592,9 @@ void LogicSystem::GetUserByName(std::string name, Json::Value& rtvalue)
 		auto nick = root["nick"].asString();
 		auto desc = root["desc"].asString();
 		auto sex = root["sex"].asInt();
-		std::cout << "user  uid is  " << uid << " name  is "
+		auto icon = root["icon"].asString();
+		auto back = root["back"].asString();
+		std::cout << "Redis 查到 ：user  uid is  " << uid << " name  is "
 			<< name << " pwd is " << pwd << " email is " << email << endl;
 
 		rtvalue["uid"] = uid;
@@ -556,6 +604,8 @@ void LogicSystem::GetUserByName(std::string name, Json::Value& rtvalue)
 		rtvalue["nick"] = nick;
 		rtvalue["desc"] = desc;
 		rtvalue["sex"] = sex;
+		rtvalue["icon"] = icon;
+		rtvalue["back"] = back;
 		return;
 	}
 
@@ -577,6 +627,10 @@ void LogicSystem::GetUserByName(std::string name, Json::Value& rtvalue)
 	redis_root["nick"] = user_info->nick;
 	redis_root["desc"] = user_info->desc;
 	redis_root["sex"] = user_info->sex;
+	redis_root["icon"] = user_info->icon;
+	redis_root["back"] = user_info->back;
+	std::cout << "mysql 查到  ： user  uid is  " << user_info->uid << " name  is "
+		<< name << " pwd is " << user_info->pwd << " email is " << user_info->email << " icon is " << user_info->icon << endl;
 
 	RedisMgr::GetInstance()->Set(base_key, redis_root.toStyledString());
 	
@@ -588,6 +642,8 @@ void LogicSystem::GetUserByName(std::string name, Json::Value& rtvalue)
 	rtvalue["nick"] = user_info->nick;
 	rtvalue["desc"] = user_info->desc;
 	rtvalue["sex"] = user_info->sex;
+	rtvalue["icon"] = user_info->icon;
+	rtvalue["back"] = user_info->back;
 }
 
 bool LogicSystem::GetBaseInfo(std::string base_key, int uid, std::shared_ptr<UserInfo>& userinfo)
@@ -607,6 +663,7 @@ bool LogicSystem::GetBaseInfo(std::string base_key, int uid, std::shared_ptr<Use
 		userinfo->desc = root["desc"].asString();
 		userinfo->sex = root["sex"].asInt();
 		userinfo->icon = root["icon"].asString();
+		userinfo->back = root["back"].asString();
 		std::cout << "user login uid is  " << userinfo->uid << " name  is "
 			<< userinfo->name << " pwd is " << userinfo->pwd << " email is " << userinfo->email << endl;
 	}
@@ -630,6 +687,7 @@ bool LogicSystem::GetBaseInfo(std::string base_key, int uid, std::shared_ptr<Use
 		redis_root["desc"] = userinfo->desc;
 		redis_root["sex"] = userinfo->sex;
 		redis_root["icon"] = userinfo->icon;
+		redis_root["back"] = userinfo->back;
 		RedisMgr::GetInstance()->Set(base_key, redis_root.toStyledString());
 	}
 	return true;

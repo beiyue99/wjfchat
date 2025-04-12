@@ -15,9 +15,9 @@ ApplyFriend::ApplyFriend(QWidget *parent) :
     setWindowFlags(windowFlags() | Qt::FramelessWindowHint);
     this->setObjectName("ApplyFriend");
     this->setModal(true);
-    ui->name_ed->setPlaceholderText(tr("恋恋风辰"));
+    ui->name_ed->setPlaceholderText(tr("wjf"));
     ui->lb_ed->setPlaceholderText("搜索、添加标签");
-    ui->back_ed->setPlaceholderText("燃烧的胸毛");
+    ui->back_ed->setPlaceholderText("xxx");
 
 	ui->lb_ed->SetMaxLength(21);
 	ui->lb_ed->move(2, 2);
@@ -51,58 +51,83 @@ ApplyFriend::ApplyFriend(QWidget *parent) :
 
 ApplyFriend::~ApplyFriend()
 {
-    qDebug()<< "ApplyFriend destruct";
     delete ui;
 }
 
+
+
+
+//初始化并动态布局标签提示（Tip 标签），一般用于类似“推荐标签”或者“快捷标签”的 UI 场景，
+//比如：你加好友时，系统推荐你选择“同学”“同事”“家人”等标签，点击即可快速填写
 void ApplyFriend::InitTipLbs()
 {
-    int lines = 1;
-    for(int i = 0; i < _tip_data.size(); i++){
+    int lines = 1;  // 当前显示的行数，初始为1
 
-		auto* lb = new ClickedLabel(ui->lb_list);
-		lb->SetState("normal", "hover", "pressed", "selected_normal",
-			"selected_hover", "selected_pressed");
-		lb->setObjectName("tipslb");
-		lb->setText(_tip_data[i]);
-		connect(lb, &ClickedLabel::clicked, this, &ApplyFriend::SlotChangeFriendLabelByTip);
+    for (int i = 0; i < _tip_data.size(); i++) {
 
-		QFontMetrics fontMetrics(lb->font()); // 获取QLabel控件的字体信息
-		int textWidth = fontMetrics.width(lb->text()); // 获取文本的宽度
-		int textHeight = fontMetrics.height(); // 获取文本的高度
+        // 创建一个 ClickedLabel 标签，作为提示标签的一项
+        auto* lb = new ClickedLabel(ui->lb_list);
 
-		if (_tip_cur_point.x() + textWidth + tip_offset > ui->lb_list->width()) {
-            lines++;
-            if (lines > 2) {
-                delete lb;
+        // 设置标签的多种状态样式（如普通、悬停、点击、选中等）
+        lb->SetState("normal", "hover", "pressed", "selected_normal",
+                     "selected_hover", "selected_pressed");
+
+        lb->setObjectName("tipslb");           // 设置对象名称（方便样式表识别）
+        lb->setText(_tip_data[i]);             // 设置标签文字
+        connect(lb, &ClickedLabel::clicked, this, &ApplyFriend::SlotChangeFriendLabelByTip); // 绑定点击事件
+
+        // 获取当前标签文字的宽高信息
+        QFontMetrics fontMetrics(lb->font());         // 获取字体度量信息
+        int textWidth = fontMetrics.horizontalAdvance(lb->text()); // 计算文本宽度
+        int textHeight = fontMetrics.height();         // 计算文本高度
+
+        // 判断当前标签是否会超出一行最大宽度
+        if (_tip_cur_point.x() + textWidth + tip_offset > ui->lb_list->width()) {
+            lines++; // 新起一行
+            if (lines > 2) { // 最多只显示两行提示标签
+                delete lb;  // 超出行数限制就不添加了，释放内存
                 return;
             }
-			
+
+            // 回到新行的起始位置
             _tip_cur_point.setX(tip_offset);
-            _tip_cur_point.setY(_tip_cur_point.y() + textHeight + 15);
+            _tip_cur_point.setY(_tip_cur_point.y() + textHeight + 15); // 换行偏移
+        }
 
-		}
+        // 保存当前位置为标签摆放起点
+        auto next_point = _tip_cur_point;
 
-       auto next_point = _tip_cur_point;
+        // 添加标签并设置它的位置与大小
+        AddTipLbs(lb, _tip_cur_point, next_point, textWidth, textHeight);
 
-       AddTipLbs(lb, _tip_cur_point,next_point, textWidth, textHeight);
-
-       _tip_cur_point = next_point;
+        // 更新下一个标签的起始位置
+        _tip_cur_point = next_point;
     }
-
 }
 
 
+//将一个标签控件 lb 添加到标签列表区域并进行位置记录和管理
 void ApplyFriend::AddTipLbs(ClickedLabel* lb, QPoint cur_point, QPoint& next_point, int text_width, int text_height)
 {
-	lb->move(cur_point);
-	lb->show();
-	_add_labels.insert(lb->text(), lb);
-	_add_label_keys.push_back(lb->text());
-	next_point.setX(lb->pos().x() + text_width + 15);
-    next_point.setY(lb->pos().y());
+    // 将标签移动到当前应该显示的位置
+    lb->move(cur_point);
+
+    // 显示这个标签
+    lb->show();
+
+    // 将标签对象插入到 _add_labels 字典中，key 是标签的文本内容，方便后续查找
+    _add_labels.insert(lb->text(), lb);
+
+    // 将标签文本内容保存到顺序列表中，记录添加顺序
+    _add_label_keys.push_back(lb->text());
+
+    // 计算下一个标签的位置（在当前标签右边留 15 像素空隙）
+    next_point.setX(lb->pos().x() + text_width + 15);
+    next_point.setY(lb->pos().y()); // y 坐标保持一致，不换行时标签在同一行
 }
 
+
+//当鼠标移入 scrollArea 时显示滚动条,当鼠标移出时隐藏滚动条
 bool ApplyFriend::eventFilter(QObject *obj, QEvent *event)
 {
     if (obj == ui->scrollArea && event->type() == QEvent::Enter)
@@ -116,18 +141,19 @@ bool ApplyFriend::eventFilter(QObject *obj, QEvent *event)
     return QObject::eventFilter(obj, event);
 }
 
+
+// 存储搜索信息
 void ApplyFriend::SetSearchInfo(std::shared_ptr<SearchInfo> si)
 {
     _si = si;
     auto applyname = UserMgr::GetInstance()->GetName();
-    auto bakname = si->_name;
+    auto backname = si->_name;
     ui->name_ed->setText(applyname);
-    ui->back_ed->setText(bakname);
+    ui->back_ed->setText(backname);
 }
 
 void ApplyFriend::ShowMoreLabel()
 {
-    qDebug()<< "receive more label clicked";
     ui->more_lb_wid->hide();
 
     ui->lb_list->setFixedWidth(325);
@@ -140,7 +166,7 @@ void ApplyFriend::ShowMoreLabel()
         auto added_lb = _add_labels[added_key];
 
         QFontMetrics fontMetrics(added_lb->font()); // 获取QLabel控件的字体信息
-        textWidth = fontMetrics.width(added_lb->text()); // 获取文本的宽度
+        textWidth = fontMetrics.horizontalAdvance(added_lb->text()); // 获取文本的宽度
         textHeight = fontMetrics.height(); // 获取文本的高度
 
         if(_tip_cur_point.x() +textWidth + tip_offset > ui->lb_list->width()){
@@ -171,7 +197,7 @@ void ApplyFriend::ShowMoreLabel()
 		connect(lb, &ClickedLabel::clicked, this, &ApplyFriend::SlotChangeFriendLabelByTip);
 
 		QFontMetrics fontMetrics(lb->font()); // 获取QLabel控件的字体信息
-		int textWidth = fontMetrics.width(lb->text()); // 获取文本的宽度
+        int textWidth = fontMetrics.horizontalAdvance(lb->text()); // 获取文本的宽度
 		int textHeight = fontMetrics.height(); // 获取文本的高度
 
 		if (_tip_cur_point.x() + textWidth + tip_offset > ui->lb_list->width()) {
@@ -304,13 +330,10 @@ void ApplyFriend::SlotLabelEnter()
     lb->setObjectName("tipslb");
     lb->setText(text);
     connect(lb, &ClickedLabel::clicked, this, &ApplyFriend::SlotChangeFriendLabelByTip);
-    qDebug() << "ui->lb_list->width() is " << ui->lb_list->width();
-    qDebug() << "_tip_cur_point.x() is " << _tip_cur_point.x();
 
     QFontMetrics fontMetrics(lb->font()); // 获取QLabel控件的字体信息
-    int textWidth = fontMetrics.width(lb->text()); // 获取文本的宽度
+    int textWidth = fontMetrics.horizontalAdvance(lb->text()); // 获取文本的宽度
     int textHeight = fontMetrics.height(); // 获取文本的高度
-    qDebug() << "textWidth is " << textWidth;
 
     if (_tip_cur_point.x() + textWidth + tip_offset + 3 > ui->lb_list->width()) {
 
@@ -334,7 +357,6 @@ void ApplyFriend::SlotLabelEnter()
 
 void ApplyFriend::SlotRemoveFriendLabel(QString name)
 {
-    qDebug() << "receive close signal";
 
     _label_point.setX(2);
     _label_point.setY(6);
@@ -446,14 +468,11 @@ void ApplyFriend::SlotAddFirendLabelByClickTip(QString text)
 		"selected_hover", "selected_pressed");
 	lb->setObjectName("tipslb");
 	lb->setText(text);
-	connect(lb, &ClickedLabel::clicked, this, &ApplyFriend::SlotChangeFriendLabelByTip);
-    qDebug() << "ui->lb_list->width() is " << ui->lb_list->width();
-    qDebug() << "_tip_cur_point.x() is " << _tip_cur_point.x();
+    connect(lb, &ClickedLabel::clicked, this, &ApplyFriend::SlotChangeFriendLabelByTip);
    
 	QFontMetrics fontMetrics(lb->font()); // 获取QLabel控件的字体信息
-	int textWidth = fontMetrics.width(lb->text()); // 获取文本的宽度
-	int textHeight = fontMetrics.height(); // 获取文本的高度
-    qDebug() << "textWidth is " << textWidth;
+    int textWidth = fontMetrics.horizontalAdvance(lb->text()); // 获取文本的宽度
+    int textHeight = fontMetrics.height(); // 获取文本的高度
 
 	if (_tip_cur_point.x() + textWidth+ tip_offset+3 > ui->lb_list->width()) {
 
@@ -477,41 +496,49 @@ void ApplyFriend::SlotAddFirendLabelByClickTip(QString text)
 
 void ApplyFriend::SlotApplySure()
 {
-    qDebug()<<"Slot Apply Sure called" ;
-    //发送请求逻辑
+    // 构造要发送的 JSON 数据对象
     QJsonObject jsonObj;
+
+    // 获取当前用户的 uid，并放入 JSON 中
     auto uid = UserMgr::GetInstance()->GetUid();
     jsonObj["uid"] = uid;
+
+    // 获取用户填写的好友备注名称
     auto name = ui->name_ed->text();
-    if(name.isEmpty()){
+    if (name.isEmpty()) {
+        // 如果输入为空，则使用提示文本作为默认值
         name = ui->name_ed->placeholderText();
     }
-
     jsonObj["applyname"] = name;
 
-    auto bakname = ui->back_ed->text();
-    if(bakname.isEmpty()){
-        bakname = ui->back_ed->placeholderText();
-    }
 
-    jsonObj["bakname"] = bakname;
+    auto backname = ui->back_ed->text();
+    if (backname.isEmpty()) {
+        // 如果为空，也用提示文本作为默认内容
+        backname = ui->back_ed->placeholderText();
+    }
+    jsonObj["back"] = backname;
+
+    // 设置要添加的好友的 uid（由外部传入并提前记录在 _si 中）
     jsonObj["touid"] = _si->_uid;
 
+    // 将 JSON 对象转为紧凑格式的 JSON 文本
     QJsonDocument doc(jsonObj);
     QByteArray jsonData = doc.toJson(QJsonDocument::Compact);
 
-    //发送tcp请求给chat server
+    // 通过 TCP 管理器发出添加好友请求
     emit TcpMgr::GetInstance()->sig_send_data(ReqId::ID_ADD_FRIEND_REQ, jsonData);
+
+    // 隐藏当前窗口
     this->hide();
+
+    // 延迟删除该窗口对象，防止内存泄漏
     deleteLater();
 }
 
+
 void ApplyFriend::SlotApplyCancel()
 {
-    qDebug() << "Slot Apply Cancel";
-
-
-
     this->hide();
     deleteLater();
 }

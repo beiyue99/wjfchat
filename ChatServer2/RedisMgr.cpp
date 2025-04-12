@@ -39,7 +39,7 @@ bool RedisMgr::Get(const std::string& key, std::string& value)
 	 value = reply->str;
 	 freeReplyObject(reply);
 
-	 std::cout << "Succeed to execute command [ GET " << key << "  ]" << std::endl;
+	 //std::cout << "Succeed to execute command [ GET " << key << "  ]" << std::endl;
 	 _con_pool->returnConnection(connect);
 	 return true;
 }

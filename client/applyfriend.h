@@ -5,6 +5,7 @@
 #include "clickedlabel.h"
 #include "friendlabel.h"
 #include "userdata.h"
+
 namespace Ui {
 class ApplyFriend;
 }
@@ -14,44 +15,73 @@ class ApplyFriend : public QDialog
     Q_OBJECT
 
 public:
+    // 好友申请界面，包括设置标签、显示更多标签、输入框文本处理、显示提示信息等。
     explicit ApplyFriend(QWidget *parent = nullptr);
     ~ApplyFriend();
+
+    // 初始化提示标签
     void InitTipLbs();
-    void AddTipLbs(ClickedLabel*, QPoint cur_point, QPoint &next_point, int text_width, int text_height);
-    bool eventFilter(QObject *obj, QEvent *event);
+
+    // 添加提示标签
+    void AddTipLbs(ClickedLabel* label, QPoint cur_point, QPoint &next_point, int text_width, int text_height);
+
+    // 事件过滤器
+    bool eventFilter(QObject *obj, QEvent *event) override;
+
+    // 设置搜索信息
     void SetSearchInfo(std::shared_ptr<SearchInfo> si);
+
 private:
+    // 重置标签状态
     void resetLabels();
+
     Ui::ApplyFriend *ui;
-    //已经创建好的标签
+
+    // 存储已添加的标签
     QMap<QString, ClickedLabel*> _add_labels;
     std::vector<QString> _add_label_keys;
     QPoint _label_point;
-    //用来在输入框显示添加新好友的标签
+
+    // 存储好友标签
     QMap<QString, FriendLabel*> _friend_labels;
     std::vector<QString> _friend_label_keys;
+
+    // 添加新标签
     void addLabel(QString name);
+
+    // 存储提示数据
     std::vector<QString> _tip_data;
     QPoint _tip_cur_point;
+
+    // 存储搜索信息
     std::shared_ptr<SearchInfo> _si;
+
 public slots:
-    //显示更多label标签
+    // 显示更多标签
     void ShowMoreLabel();
-    //输入label按下回车触发将标签加入展示栏
+
+    // 输入标签后按回车键
     void SlotLabelEnter();
-    //点击关闭，移除展示栏好友便签
-    void SlotRemoveFriendLabel(QString);
-    //通过点击tip实现增加和减少好友便签
-    void SlotChangeFriendLabelByTip(QString, ClickLbState);
-    //输入框文本变化显示不同提示
+
+    // 移除好友标签
+    void SlotRemoveFriendLabel(QString label);
+
+    // 通过提示标签增删好友标签
+    void SlotChangeFriendLabelByTip(QString label, ClickLbState state);
+
+    // 监听输入框文本变化
     void SlotLabelTextChange(const QString& text);
-    //输入框输入完成
+
+    // 输入框输入完成
     void SlotLabelEditFinished();
-   //输入标签显示提示框，点击提示框内容后添加好友便签
+
+    // 点击提示框内容添加好友标签
     void SlotAddFirendLabelByClickTip(QString text);
-    //处理确认回调
+
+    // 确认申请好友
     void SlotApplySure();
-    //处理取消回调
+
+    // 取消申请
     void SlotApplyCancel();
 };
 

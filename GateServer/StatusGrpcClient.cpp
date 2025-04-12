@@ -20,7 +20,6 @@ GetChatServerRsp StatusGrpcClient::GetChatServer(int uid)
 		return reply;
 	}
 	else {
-
 		std::cout << "status not ok..." << std::endl;
 		reply.set_error(ErrorCodes::RPCFailed);
 		return reply;

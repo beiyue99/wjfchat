@@ -33,14 +33,12 @@ ConfigMgr::ConfigMgr() {
         _config_map[section_name] = sectionInfo;
     }
 
-    // 输出所有的section和key-value对  
-    //for (const auto& section_entry : _config_map) {
-    //    const std::string& section_name = section_entry.first;
-    //    SectionInfo section_config = section_entry.second;
-    //    std::cout << "[" << section_name << "]" << std::endl;
-    //    for (const auto& key_value_pair : section_config._section_datas) {
-    //        std::cout << key_value_pair.first << "=" << key_value_pair.second << std::endl;
-    //    }
-    //}
+}
 
+std::string ConfigMgr::GetValue(const std::string& section, const std::string& key) {
+	if (_config_map.find(section) == _config_map.end()) {
+		return "";
+	}
+
+	return _config_map[section].GetValue(key);
 }

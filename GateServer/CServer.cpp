@@ -21,16 +21,13 @@ _acceptor(ioc,tcp::endpoint(tcp::v4(),port)){
 //			//继续监听
 //			self->Start();
 //		}
-//		catch (std::exception& exp) {
-//
-//		}
-//		});
 //}
 
 
 void CServer::Start()
 {
     auto self = shared_from_this();
+	//每次有新连接到来时，都会创建一个新的HttpConnection对象来处理这个连接
     auto& io_context = AsioIOServicePool::GetInstance()->GetIOService();
     std::shared_ptr<HttpConnection> new_con = std::make_shared<HttpConnection>(io_context);
 	_acceptor.async_accept(new_con->GetSocket(), [self, new_con](beast::error_code ec) { //异步接收连接

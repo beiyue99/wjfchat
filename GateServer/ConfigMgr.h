@@ -21,32 +21,34 @@ struct SectionInfo {
         return *this;
     }
 
-	std::map<std::string, std::string> _section_datas;  //存储key-value对的map
-    std::string  operator[](const std::string& key) {
-        if (_section_datas.find(key) == _section_datas.end()) {
-            return "";
-        }
-        return _section_datas[key];
-    }
+	std::map<std::string, std::string> _section_datas;
+	std::string  operator[](const std::string  &key) {
+		if (_section_datas.find(key) == _section_datas.end()) {
+			return "";
+		}
+		return _section_datas[key];
+	}
+
+	std::string GetValue(const std::string & key) {
+		if (_section_datas.find(key) == _section_datas.end()) {
+			return "";
+		}
+		return _section_datas[key];
+	}
 };
 
 class ConfigMgr
 {
 public:
-    ~ConfigMgr() {
-        _config_map.clear();
-    }
-	//重载中括号运算符,用于获取section对应的SectionInfo对象
-    SectionInfo operator[](const std::string& section) {
-        if (_config_map.find(section) == _config_map.end()) {
-			return SectionInfo();  //如果没有找到则返回空的SectionInfo对象
-        }
-        return _config_map[section];
-    }
-    static ConfigMgr& Inst() {
-        static ConfigMgr cfg_mgr;
-        return cfg_mgr;
-    }
+	~ConfigMgr() {
+		_config_map.clear();
+	}
+	SectionInfo operator[](const std::string& section) {
+		if (_config_map.find(section) == _config_map.end()) {
+			return SectionInfo();
+		}
+		return _config_map[section];
+	}
 
 
     ConfigMgr& operator=(const ConfigMgr& src) {
@@ -60,7 +62,12 @@ public:
         this->_config_map = src._config_map;
     }
 
+	static ConfigMgr& Inst() {
+		static ConfigMgr cfg_mgr;
+		return cfg_mgr;
+	}
 
+	std::string GetValue(const std::string& section, const std::string & key);
 private:
     ConfigMgr();
     // 存储section和key-value对的map  

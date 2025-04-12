@@ -19,7 +19,7 @@ FindSuccessDlg::FindSuccessDlg(QWidget *parent) :
                              QDir::separator() + "static"+QDir::separator()+"head_1.jpg");
     QPixmap head_pix(pix_path);
     if (head_pix.isNull()) {
-        qDebug() << "Error: Failed to load pixmap5!";
+        qDebug() << "Error: Failed to load pixmap!";
         return;  // 或者使用一个默认图片
     }
     head_pix = head_pix.scaled(ui->head_lb->size(),
@@ -34,11 +34,36 @@ FindSuccessDlg::~FindSuccessDlg()
     delete ui;
 }
 
+//void FindSuccessDlg::SetSearchInfo(std::shared_ptr<SearchInfo> si)
+//{
+//    ui->name_lb->setText(si->_name);
+//    _si = si;
+//}
+
 void FindSuccessDlg::SetSearchInfo(std::shared_ptr<SearchInfo> si)
 {
-    ui->name_lb->setText(si->_name);
-    _si = si;
+    ui->name_lb->setText(si->_name);  // 设置用户姓名
+
+    // 获取用户的头像路径
+    QString icon_path = si->_icon;
+    qDebug() << "icon_path is :" << icon_path;
+    // 加载头像图片
+    QPixmap head_pix(icon_path);
+    if (head_pix.isNull()) {
+        qDebug() << "Error: Failed to load pixmap!";
+    }
+
+    // 调整头像大小以适应控件
+    head_pix = head_pix.scaled(ui->head_lb->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+
+    // 设置头像
+    ui->head_lb->setPixmap(head_pix);
+
+    _si = si;  // 保存搜索信息
 }
+
+
+
 
 void FindSuccessDlg::on_add_friend_btn_clicked()
 {

@@ -28,16 +28,18 @@ using tcp = boost::asio::ip::tcp;
 
 //错误码
 enum ErrorCodes {
-	Success = 0,          
-	Error_Json = 1001, // JSON 解析错误
-	RPCFailed = 1002, // RPC 调用失败
-	VarifyExpired = 1003, // 验证码过期
-	VarifyCodeErr = 1004, // 验证码错误
-	UserExist = 1005, // 用户已存在
-	PasswdErr = 1006, // 密码错误
-	EmailNotMatch = 1007, // 邮箱不匹配
-	PasswdUpFailed = 1008, // 密码修改失败
-	PasswdInvalid = 1009, // 密码不合法
+	Success = 0,
+	Error_Json = 1001,  //Json解析错误
+	RPCFailed = 1002,  //RPC请求错误
+	VarifyExpired = 1003, //验证码过期
+	VarifyCodeErr = 1004, //验证码错误
+	UserExist = 1005,       //用户已经存在
+	PasswdErr = 1006,    //密码错误
+	EmailNotMatch = 1007,  //邮箱不匹配
+	PasswdUpFailed = 1008,  //更新密码失败
+	PasswdInvalid = 1009,   //密码更新失败
+	TokenInvalid = 1010,   //Token失效
+	UidInvalid = 1011,  //uid无效
 };
 
 

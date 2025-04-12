@@ -50,7 +50,6 @@ AuthenFriend::AuthenFriend(QWidget *parent) :
 
 AuthenFriend::~AuthenFriend()
 {
-    qDebug()<< "AuthenFriend destruct";
     delete ui;
 }
 
@@ -122,7 +121,6 @@ void AuthenFriend::SetApplyInfo(std::shared_ptr<ApplyInfo> apply_info)
 
 void AuthenFriend::ShowMoreLabel()
 {
-    qDebug()<< "receive more label clicked";
     ui->more_lb_wid->hide();
 
     ui->lb_list->setFixedWidth(325);
@@ -135,7 +133,7 @@ void AuthenFriend::ShowMoreLabel()
         auto added_lb = _add_labels[added_key];
 
         QFontMetrics fontMetrics(added_lb->font()); // 获取QLabel控件的字体信息
-        textWidth = fontMetrics.width(added_lb->text()); // 获取文本的宽度
+        textWidth = fontMetrics.horizontalAdvance(added_lb->text()); // 获取文本的宽度
         textHeight = fontMetrics.height(); // 获取文本的高度
 
         if(_tip_cur_point.x() +textWidth + tip_offset > ui->lb_list->width()){
@@ -166,7 +164,7 @@ void AuthenFriend::ShowMoreLabel()
         connect(lb, &ClickedLabel::clicked, this, &AuthenFriend::SlotChangeFriendLabelByTip);
 
         QFontMetrics fontMetrics(lb->font()); // 获取QLabel控件的字体信息
-        int textWidth = fontMetrics.width(lb->text()); // 获取文本的宽度
+        int textWidth = fontMetrics.horizontalAdvance(lb->text()); // 获取文本的宽度
         int textHeight = fontMetrics.height(); // 获取文本的高度
 
         if (_tip_cur_point.x() + textWidth + tip_offset > ui->lb_list->width()) {
@@ -279,7 +277,6 @@ void AuthenFriend::SlotLabelEnter()
 
 void AuthenFriend::SlotRemoveFriendLabel(QString name)
 {
-    qDebug() << "receive close signal";
 
     _label_point.setX(2);
     _label_point.setY(6);
@@ -382,14 +379,10 @@ void AuthenFriend::SlotAddFirendLabelByClickTip(QString text)
     lb->setObjectName("tipslb");
     lb->setText(text);
     connect(lb, &ClickedLabel::clicked, this, &AuthenFriend::SlotChangeFriendLabelByTip);
-    qDebug() << "ui->lb_list->width() is " << ui->lb_list->width();
-    qDebug() << "_tip_cur_point.x() is " << _tip_cur_point.x();
 
     QFontMetrics fontMetrics(lb->font()); // 获取QLabel控件的字体信息
-    int textWidth = fontMetrics.width(lb->text()); // 获取文本的宽度
+    int textWidth = fontMetrics.horizontalAdvance(lb->text()); // 获取文本的宽度
     int textHeight = fontMetrics.height(); // 获取文本的高度
-    qDebug() << "textWidth is " << textWidth;
-
     if (_tip_cur_point.x() + textWidth+ tip_offset+3 > ui->lb_list->width()) {
 
         _tip_cur_point.setX(5);
@@ -412,29 +405,43 @@ void AuthenFriend::SlotAddFirendLabelByClickTip(QString text)
 
 void AuthenFriend::SlotApplySure()
 {
-    qDebug() << "Slot Apply Sure ";
-    //添加发送逻辑
+    // 创建一个 JSON 对象，用于存储好友申请的相关数据
     QJsonObject jsonObj;
+
+    // 获取当前用户的 UID，并设置为 "fromuid" 字段
     auto uid = UserMgr::GetInstance()->GetUid();
     jsonObj["fromuid"] = uid;
+
+    // 获取目标用户的 UID，并设置为 "touid" 字段
     jsonObj["touid"] = _apply_info->_uid;
+
+    // 获取备注信息，若用户输入了内容，则使用输入框的内容；否则使用输入框的占位符文本
     QString back_name = "";
     if(ui->back_ed->text().isEmpty()){
-        back_name = ui->back_ed->placeholderText();
+        back_name = ui->back_ed->placeholderText();  // 使用占位符文本
     }else{
-        back_name = ui->back_ed->text();
+        back_name = ui->back_ed->text();  // 使用用户输入的内容
     }
+
+    // 将备注信息添加到 JSON 对象中
     jsonObj["back"] = back_name;
 
+    // 将 JSON 对象转换为 JSON 文档
     QJsonDocument doc(jsonObj);
+
+    // 将 JSON 文档转为紧凑格式的 JSON 字符串
     QByteArray jsonData = doc.toJson(QJsonDocument::Compact);
 
-    //发送tcp请求给chat server
+    // 发送 TCP 请求给聊天服务器，传递好友申请认证的请求数据
     emit TcpMgr::GetInstance()->sig_send_data(ReqId::ID_AUTH_FRIEND_REQ, jsonData);
 
+    // 隐藏当前认证界面
     this->hide();
+
+    // 删除当前认证界面对象，释放资源
     deleteLater();
 }
+
 
 void AuthenFriend::SlotApplyCancel()
 {

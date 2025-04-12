@@ -46,20 +46,10 @@ ChatView::ChatView(QWidget *parent)
 void ChatView::appendChatItem(QWidget *item)
 {
    QVBoxLayout *vl = qobject_cast<QVBoxLayout *>(m_pScrollArea->widget()->layout());
-   qDebug() << "vl->count() is " << vl->count();
    vl->insertWidget(vl->count()-1, item);   
    isAppended = true;
 }
 
-void ChatView::prependChatItem(QWidget *item)
-{
-
-}
-
-void ChatView::insertChatItem(QWidget *before, QWidget *item)
-{
-
-}
 
 void ChatView::removeAllItem()
 {
@@ -81,11 +71,7 @@ void ChatView::removeAllItem()
 
 bool ChatView::eventFilter(QObject *o, QEvent *e)
 {
-    /*if(e->type() == QEvent::Resize && o == )
-    {
-
-    }
-    else */if(e->type() == QEvent::Enter && o == m_pScrollArea)
+    if(e->type() == QEvent::Enter && o == m_pScrollArea)
     {
         m_pScrollArea->verticalScrollBar()->setHidden(m_pScrollArea->verticalScrollBar()->maximum() == 0);
     }

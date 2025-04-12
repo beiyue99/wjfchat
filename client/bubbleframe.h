@@ -4,13 +4,14 @@
 #include <QFrame>
 #include "global.h"
 #include <QHBoxLayout>
+
+//创建一个自定义的消息气泡框架，用来显示聊天消息的外观。
 class BubbleFrame : public QFrame
 {
     Q_OBJECT
 public:
     BubbleFrame(ChatRole role, QWidget *parent = nullptr);
     void setMargin(int margin);
-    //inline int margin(){return margin;}
     void setWidget(QWidget *w);
 protected:
     void paintEvent(QPaintEvent *e);

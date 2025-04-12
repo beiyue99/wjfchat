@@ -61,7 +61,6 @@ RegistDialog::RegistDialog(QWidget *parent) :
         }else{
              ui->pass_edit->setEchoMode(QLineEdit::Normal);
         }
-        qDebug() << "Label was clicked!";
     });
 
     connect(ui->confirm_visible, &ClickedLabel::clicked, this, [this]() {
@@ -71,7 +70,6 @@ RegistDialog::RegistDialog(QWidget *parent) :
         }else{
              ui->confirm_edit->setEchoMode(QLineEdit::Normal);
         }
-        qDebug() << "Label was clicked!";
     });
 
     // 创建定时器
@@ -91,13 +89,11 @@ RegistDialog::RegistDialog(QWidget *parent) :
 
 RegistDialog::~RegistDialog()
 {
-    qDebug()<<"destruct RegDlg";
     delete ui;
 }
 
 void RegistDialog::on_get_code_clicked()
 {
-    qDebug()<<"receive varify btn clicked ";
     //验证邮箱的地址正则表达式
     auto email = ui->email_edit->text();
     bool valid = checkEmailValid();
@@ -258,7 +254,6 @@ void RegistDialog::initHttpHandlers()
         }
         auto email = jsonObj["email"].toString();
         showTip(tr("验证码已发送到邮箱，注意查收"), true);
-        qDebug()<< "email is " << email ;
     });
 
     //注册注册用户回包逻辑
@@ -315,7 +310,7 @@ void RegistDialog::showTip(QString str, bool b_ok)
     repolish(ui->err_tip);
 }
 
-//day11 添加确认槽函数
+// 添加确认槽函数
 void RegistDialog::on_sure_btn_clicked()
 {
     bool valid = checkUserValid();

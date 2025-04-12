@@ -33,6 +33,7 @@ private:
 	std::function<void()> func_;
 };
 
+// MAX_LENGTH是接收数据的最大长度
 #define MAX_LENGTH  1024*2
 //头部总长度
 #define HEAD_TOTAL_LEN 4

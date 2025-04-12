@@ -55,7 +55,6 @@ LogicSystem::LogicSystem()
         }
         });
 
-
 	RegPost("/test_procedure", [](std::shared_ptr<HttpConnection> connection) {
 		auto body_str = boost::beast::buffers_to_string(connection->_request.body().data());
 		//std::cout << "receive body is " << body_str << std::endl;
@@ -94,6 +93,8 @@ LogicSystem::LogicSystem()
 		return true;
 		
 	});
+
+
     // 注册一个 POST 请求处理函数，路径为 "/get_varifycode"
     RegPost("/get_varifycode", [](std::shared_ptr<HttpConnection> connection) {
         // 从 HTTP 请求体中获取数据并转换为字符串
@@ -141,57 +142,67 @@ LogicSystem::LogicSystem()
         return true;
         });
 
-	RegPost("/user_register", [](std::shared_ptr<HttpConnection> connection) {
-		auto body_str = boost::beast::buffers_to_string(connection->_request.body().data());
-		//std::cout << "receive body is " << body_str << std::endl;
-		connection->_response.set(http::field::content_type, "text/json");
-		Json::Value root;
-		Json::Reader reader;
-		Json::Value src_root;
-		bool parse_success = reader.parse(body_str, src_root);
-		if (!parse_success) {
-			std::cout << "Failed to parse JSON data!" << std::endl;
-			root["error"] = ErrorCodes::Error_Json;
-			std::string jsonstr = root.toStyledString();
-			beast::ostream(connection->_response.body()) << jsonstr;
-			return true;
-		}
+    // 注册一个 POST 请求处理函数，路径为 "/user_register"
+    RegPost("/user_register", [](std::shared_ptr<HttpConnection> connection) {
+        // 从 HTTP 请求体中读取 JSON 字符串
+        auto body_str = boost::beast::buffers_to_string(connection->_request.body().data());
 
-		auto email = src_root["email"].asString();
-		auto name = src_root["user"].asString();
-		auto pwd = src_root["passwd"].asString();
-		auto confirm = src_root["confirm"].asString();
-		auto icon = src_root["icon"].asString();
-		if (pwd != confirm)
-		{
-			std::cout << "pwd is not equal confirm" << std::endl;
+        // 设置响应的内容类型为 JSON 格式
+        connection->_response.set(http::field::content_type, "text/json");
+
+        // 解析请求体中的 JSON 数据
+        Json::Value root;
+        Json::Reader reader;
+        Json::Value src_root;
+        bool parse_success = reader.parse(body_str, src_root);
+        if (!parse_success) {
+            // JSON 格式不正确，返回错误
+            std::cout << "Failed to parse JSON data!" << std::endl;
+            root["error"] = ErrorCodes::Error_Json;
+            std::string jsonstr = root.toStyledString();
+            beast::ostream(connection->_response.body()) << jsonstr;
+            return true;
+        }
+
+        // 提取用户提交的注册信息
+        auto email = src_root["email"].asString();
+        auto name = src_root["user"].asString();
+        auto pwd = src_root["passwd"].asString();
+        auto confirm = src_root["confirm"].asString();
+        auto icon = src_root["icon"].asString();
+
+        // 校验两次密码是否一致
+        if (pwd != confirm) {
+            std::cout << "pwd is not equal confirm" << std::endl;
             std::cout << "pwd :" << pwd << std::endl << "confirm :" << confirm << std::endl;
-			root["error"] = ErrorCodes::PasswdErr;
-			std::string jsonstr = root.toStyledString();
-			beast::ostream(connection->_response.body()) << jsonstr;
-			return true;
-		}
+            root["error"] = ErrorCodes::PasswdErr;
+            std::string jsonstr = root.toStyledString();
+            beast::ostream(connection->_response.body()) << jsonstr;
+            return true;
+        }
 
+        // 从 Redis 中检查验证码是否存在（是否过期）
+        std::string  varify_code;
+        bool b_get_varify = RedisMgr::GetInstance()->Get(CODEPREFIX + src_root["email"].asString(), varify_code);
+        if (!b_get_varify) {
+            // 验证码已过期
+            std::cout << " get varify code expired" << std::endl;
+            root["error"] = ErrorCodes::VarifyExpired;
+            std::string jsonstr = root.toStyledString();
+            beast::ostream(connection->_response.body()) << jsonstr;
+            return true;
+        }
 
-		//先查找redis中email对应的验证码是否合理
-		std::string  varify_code;
-		bool b_get_varify = RedisMgr::GetInstance()->Get(CODEPREFIX + src_root["email"].asString(), varify_code);
-		if (!b_get_varify) {
-			std::cout << " get varify code expired" << std::endl;
-			root["error"] = ErrorCodes::VarifyExpired;
-			std::string jsonstr = root.toStyledString();
-			beast::ostream(connection->_response.body()) << jsonstr;
-			return true;
-		}
-		if (varify_code != src_root["varifycode"].asString()) {
-			std::cout << " varify code error" << std::endl;
-			root["error"] = ErrorCodes::VarifyCodeErr;
-			std::string jsonstr = root.toStyledString();
-			beast::ostream(connection->_response.body()) << jsonstr;
-			return true;
-		}
+        // 校验验证码是否正确
+        if (varify_code != src_root["varifycode"].asString()) {
+            std::cout << " varify code error" << std::endl;
+            root["error"] = ErrorCodes::VarifyCodeErr;
+            std::string jsonstr = root.toStyledString();
+            beast::ostream(connection->_response.body()) << jsonstr;
+            return true;
+        }
 
-        //查找数据库判断用户是否存在
+        // 调用数据库接口进行用户注册，检查是否重复注册
         int uid = MysqlMgr::GetInstance()->RegUser(name, email, pwd, icon);
         if (uid == 0 || uid == -1) {
             std::cout << " user or email exist" << std::endl;
@@ -201,21 +212,21 @@ LogicSystem::LogicSystem()
             return true;
         }
 
-
+        // 注册成功，构造响应内容
         root["error"] = 0;
-        
-		root["uid"] = uid;
-		root["email"] = email;
-		root ["user"]= name;
-		root["passwd"] = pwd;
-		root["confirm"] = confirm;  
-		root["icon"] = icon;
-		root["varifycode"] = src_root["varifycode"].asString();
+        root["uid"] = uid;
+        root["email"] = email;
+        root["user"] = name;
+        root["passwd"] = pwd;
+        root["confirm"] = confirm;
+        root["icon"] = icon;
+        root["varifycode"] = src_root["varifycode"].asString();
 
-		std::string jsonstr = root.toStyledString();
-		beast::ostream(connection->_response.body()) << jsonstr;
-		return true;
-		});
+        std::string jsonstr = root.toStyledString();
+        beast::ostream(connection->_response.body()) << jsonstr;
+        return true;
+        });
+
 
     //重置回调逻辑
     RegPost("/reset_pwd", [](std::shared_ptr<HttpConnection> connection) {
@@ -311,10 +322,25 @@ LogicSystem::LogicSystem()
             return true;
         }
 		std::cout << "用户名和密码匹配成功" << std::endl;
+
+
+
+
+
         //查询StatusServer找到合适的连接
         auto reply = StatusGrpcClient::GetInstance()->GetChatServer(userInfo.uid);
         if (reply.error()) {
             std::cout << " grpc get chat server failed, error is " << reply.error() << std::endl;
+            root["error"] = ErrorCodes::RPCFailed;
+            std::string jsonstr = root.toStyledString();
+            beast::ostream(connection->_response.body()) << jsonstr;
+            return true;
+        }
+
+        //验证token是否有效，判断是否已经登录
+        auto reply2 = StatusGrpcClient::GetInstance()->Login(userInfo.uid, reply.token());
+        if (reply2.error()) {
+            std::cout << " grpc login failed, error is " << reply2.error() << std::endl;
             root["error"] = ErrorCodes::RPCFailed;
             std::string jsonstr = root.toStyledString();
             beast::ostream(connection->_response.body()) << jsonstr;
@@ -328,6 +354,7 @@ LogicSystem::LogicSystem()
         root["token"] = reply.token();
         root["host"] = reply.host();
         root["port"] = reply.port();
+		root["icon"] = userInfo.icon;
         std::string jsonstr = root.toStyledString();
         beast::ostream(connection->_response.body()) << jsonstr;  
         return true;

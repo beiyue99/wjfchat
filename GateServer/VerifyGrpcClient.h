@@ -34,6 +34,7 @@ public:
             connections_.pop();
         }
     }
+	// stub的作用是将请求发送到服务器端
     std::unique_ptr<VarifyService::Stub> getConnection() {
         std::unique_lock<std::mutex> lock(mutex_);
         cond_.wait(lock, [this] {
@@ -50,6 +51,8 @@ public:
         connections_.pop();
         return context;
     }
+    
+	// 归还连接到连接池
     void returnConnection(std::unique_ptr<VarifyService::Stub> context) {
         std::lock_guard<std::mutex> lock(mutex_);
         if (b_stop_) {
@@ -80,29 +83,7 @@ class VerifyGrpcClient : public Singleton<VerifyGrpcClient> {
     friend class Singleton<VerifyGrpcClient>;
 public:
     // 获取验证码的方法
-    GetVarifyRsp GetVarifyCode(const std::string& email) {
-        // 创建 gRPC 客户端上下文
-        ClientContext context;
-        // 创建响应对象
-        GetVarifyRsp reply;
-        // 创建请求对象并设置电子邮件
-        GetVarifyReq request;
-        request.set_email(email);
-
-        // 调用rpc生成的服务端方法，并获取状态和响应
-        auto stub = pool_->getConnection();
-        Status status = stub->GetVarifyCode(&context, request, &reply);
-
-        if (status.ok()) {
-            
-            return reply;
-        }
-        else {
-            std::cout << status.error_code() << std::endl;
-            reply.set_error(ErrorCodes::RPCFailed);
-            return reply;
-        }
-    }
+    GetVarifyRsp GetVarifyCode(const std::string& email);
 
 private:
     VerifyGrpcClient(); 

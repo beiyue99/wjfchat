@@ -18,10 +18,7 @@ public:
             });
         return _instance;
     }
-    //打印实例地址的函数
-    void PrintAddress() {
-        std::cout << _instance.get() << std::endl;  
-    }
+
     ~Singleton() {
         std::cout << "this is Singleton destruct!" << std::endl;
     }
