@@ -36,7 +36,7 @@ void ConUserItem::SetInfo(std::shared_ptr<AuthInfo> auth_info)
 
 void ConUserItem::SetInfo(int uid, QString name, QString icon)
 {
-     _info = std::make_shared<UserInfo>(uid,name, name, icon, 0);
+     _info = std::make_shared<UserInfo>(uid, name, icon );
 
      // 加载图片
      QPixmap pixmap(_info->_icon);

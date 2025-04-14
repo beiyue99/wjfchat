@@ -399,24 +399,7 @@ void ChatDialog::addChatUserList()
         UserMgr::GetInstance()->UpdateChatLoadedCount();
     }
 
-    //模拟测试条目
-    // 创建QListWidgetItem，并设置自定义的widget
-//    for(int i = 0; i < 13; i++){
-//        int randomValue = QRandomGenerator::global()->bounded(100); // 生成0到99之间的随机整数
-//        int str_i = randomValue%strs.size();
-//        int head_i = randomValue%heads.size();
-//        int name_i = randomValue%names.size();
 
-//        auto *chat_user_wid = new ChatUserWid();
-//        auto user_info = std::make_shared<UserInfo>(0,names[name_i],
-//                                                    names[name_i],heads[head_i],0,strs[str_i]);
-//        chat_user_wid->SetInfo(user_info);
-//        QListWidgetItem *item = new QListWidgetItem;
-//        //qDebug()<<"chat_user_wid sizeHint is " << chat_user_wid->sizeHint();
-//        item->setSizeHint(chat_user_wid->sizeHint());
-//        ui->chat_user_list->addItem(item);
-//        ui->chat_user_list->setItemWidget(item, chat_user_wid);
-//    }
 
 }
 
@@ -722,9 +705,6 @@ void ChatDialog::slot_apply_friend(std::shared_ptr<AddFriendApply> apply)
 }
 
 void ChatDialog::slot_add_auth_friend(std::shared_ptr<AuthInfo> auth_info) {
-    // 调试信息：显示接收到的验证信息
-    // qDebug() << "receive slot_add_auth__friend uid is " << auth_info->_uid
-    //          << " name is " << auth_info->_name << " nick is " << auth_info->_nick;
 
     // 判断用户是否已经是好友
     auto bfriend = UserMgr::GetInstance()->CheckFriendById(auth_info->_uid);
@@ -764,9 +744,7 @@ void ChatDialog::slot_add_auth_friend(std::shared_ptr<AuthInfo> auth_info) {
  */
 void ChatDialog::slot_auth_rsp(std::shared_ptr<AuthRsp> auth_rsp)
 {
-    // 调试信息：显示接收到的加好友响应信息
-    // qDebug() << "receive slot_auth_rsp uid is " << auth_rsp->_uid
-    //          << " name is " << auth_rsp->_name << " nick is " << auth_rsp->_nick;
+
 
     // 判断该用户是否已经是好友
     auto bfriend = UserMgr::GetInstance()->CheckFriendById(auth_rsp->_uid);

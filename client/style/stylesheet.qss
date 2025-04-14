@@ -736,8 +736,6 @@ ApplyFriendItem #addBtn[state='press'] {
     font-family: "Microsoft YaHei"; /* 设置字体 */
 }
 
-#friend_info_page #nick_tip,
-#friend_info_page #nick_lb,
 #friend_info_page #bak_lb,
 #friend_info_page #bak_tip
 {

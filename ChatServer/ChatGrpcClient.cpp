@@ -29,7 +29,7 @@ ChatGrpcClient::ChatGrpcClient()
 	}
 }
 
-// 通知目标服务器发起添加好友请求
+// 好友请求通知到目标服务器
 AddFriendRsp ChatGrpcClient::NotifyAddFriend(std::string server_ip, const AddFriendReq& req)
 {
 	AddFriendRsp rsp;
@@ -83,9 +83,6 @@ bool ChatGrpcClient::GetBaseInfo(std::string base_key, int uid, std::shared_ptr<
 		userinfo->name = root["name"].asString();
 		userinfo->pwd = root["pwd"].asString();
 		userinfo->email = root["email"].asString();
-		userinfo->nick = root["nick"].asString();
-		userinfo->desc = root["desc"].asString();
-		userinfo->sex = root["sex"].asInt();
 		userinfo->icon = root["icon"].asString();
 
 		// 打印调试信息
@@ -108,9 +105,6 @@ bool ChatGrpcClient::GetBaseInfo(std::string base_key, int uid, std::shared_ptr<
 		redis_root["pwd"] = userinfo->pwd;
 		redis_root["name"] = userinfo->name;
 		redis_root["email"] = userinfo->email;
-		redis_root["nick"] = userinfo->nick;
-		redis_root["desc"] = userinfo->desc;
-		redis_root["sex"] = userinfo->sex;
 		redis_root["icon"] = userinfo->icon;
 
 		RedisMgr::GetInstance()->Set(base_key, redis_root.toStyledString());
@@ -118,7 +112,7 @@ bool ChatGrpcClient::GetBaseInfo(std::string base_key, int uid, std::shared_ptr<
 	return true;
 }
 
-// 通知目标服务器发起好友认证请求（同意添加好友）
+// 通知目标服务器好友申请已验证
 AuthFriendRsp ChatGrpcClient::NotifyAuthFriend(std::string server_ip, const AuthFriendReq& req)
 {
 	AuthFriendRsp rsp;

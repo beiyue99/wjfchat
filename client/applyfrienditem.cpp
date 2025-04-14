@@ -31,7 +31,7 @@ void ApplyFriendItem::SetInfo(std::shared_ptr<ApplyInfo> apply_info)
     ui->icon_lb->setScaledContents(true);
 
     ui->user_name_lb->setText(_apply_info->_name);
-    ui->user_chat_lb->setText(_apply_info->_desc);
+    ui->user_chat_lb->setText(_apply_info->_name);
 }
 
 void ApplyFriendItem::ShowAddBtn(bool bshow)

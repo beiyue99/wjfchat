@@ -142,12 +142,10 @@ void TcpMgr::initHandlers()
         // 提取登录成功时的用户信息
         auto uid = jsonObj["uid"].toInt();  // 用户ID
         auto name = jsonObj["name"].toString();  // 用户名
-        auto nick = jsonObj["nick"].toString();  // 昵称
         auto icon = jsonObj["icon"].toString();  // 用户头像
-        auto sex = jsonObj["sex"].toInt();  // 性别
 
         // 创建用户信息对象
-        auto user_info = std::make_shared<UserInfo>(uid, name, nick, icon, sex);
+        auto user_info = std::make_shared<UserInfo>(uid, name, icon );
 
         // 将用户信息存储到UserMgr中
         UserMgr::GetInstance()->SetUserInfo(user_info);
@@ -208,9 +206,6 @@ void TcpMgr::initHandlers()
         auto search_info = std::make_shared<SearchInfo>(
             jsonObj["uid"].toInt(),         // 用户ID
             jsonObj["name"].toString(),     // 用户名
-            jsonObj["nick"].toString(),     // 昵称
-            jsonObj["desc"].toString(),     // 用户描述
-            jsonObj["sex"].toInt(),         // 性别
             jsonObj["icon"].toString()      // 头像
         );
         qDebug() << "tcpMgr icon is :" << jsonObj["icon"].toString();
@@ -256,14 +251,11 @@ void TcpMgr::initHandlers()
         // 提取发起添加好友请求的用户信息
         int from_uid = jsonObj["applyuid"].toInt();  // 提取申请人用户ID
         QString name = jsonObj["name"].toString();   // 提取申请人姓名
-        QString desc = jsonObj["desc"].toString();   // 提取申请人描述
         QString icon = jsonObj["icon"].toString();   // 提取申请人头像
-        QString nick = jsonObj["nick"].toString();   // 提取申请人昵称
-        int sex = jsonObj["sex"].toInt();            // 提取申请人性别
 
         // 创建一个AddFriendApply对象，封装申请人的信息
         auto apply_info = std::make_shared<AddFriendApply>(
-            from_uid, name, desc, icon, nick, sex
+            from_uid, name, icon
         );
 
         // 发出添加好友请求的信号，并传递申请人的信息
@@ -297,12 +289,9 @@ void TcpMgr::initHandlers()
 
         int from_uid = jsonObj["fromuid"].toInt();
         QString name = jsonObj["name"].toString();
-        QString nick = jsonObj["nick"].toString();
         QString icon = jsonObj["icon"].toString();
-        int sex = jsonObj["sex"].toInt();
 
-        auto auth_info = std::make_shared<AuthInfo>(from_uid,name,
-                                                    nick, icon, sex);
+        auto auth_info = std::make_shared<AuthInfo>(from_uid,name,icon );
 
         emit sig_add_auth_friend(auth_info);
         });
@@ -362,11 +351,9 @@ void TcpMgr::initHandlers()
         }
 
         auto name = jsonObj["name"].toString();
-        auto nick = jsonObj["nick"].toString();
         auto icon = jsonObj["icon"].toString();
-        auto sex = jsonObj["sex"].toInt();
         auto uid = jsonObj["uid"].toInt();
-        auto rsp = std::make_shared<AuthRsp>(uid, name, nick, icon, sex);
+        auto rsp = std::make_shared<AuthRsp>(uid, name,  icon);
         emit sig_auth_rsp(rsp);
 
         qDebug() << "Auth Friend Success " ;

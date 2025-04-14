@@ -323,10 +323,6 @@ LogicSystem::LogicSystem()
         }
 		std::cout << "用户名和密码匹配成功" << std::endl;
 
-
-
-
-
         //查询StatusServer找到合适的连接
         auto reply = StatusGrpcClient::GetInstance()->GetChatServer(userInfo.uid);
         if (reply.error()) {

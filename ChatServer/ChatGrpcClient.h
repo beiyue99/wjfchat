@@ -106,16 +106,16 @@ class ChatGrpcClient : public Singleton<ChatGrpcClient> {
 public:
     ~ChatGrpcClient() {}
 
-    // 通知目标服务器处理添加好友请求
+    // 好友请求通知到目标服务器
     AddFriendRsp NotifyAddFriend(std::string server_ip, const AddFriendReq& req);
 
-    // 通知目标服务器处理好友认证请求
+    // 通知目标服务器好友申请已验证
     AuthFriendRsp NotifyAuthFriend(std::string server_ip, const AuthFriendReq& req);
 
     // 获取指定用户的基础信息（先查 redis，再查 mysql）
     bool GetBaseInfo(std::string base_key, int uid, std::shared_ptr<UserInfo>& userinfo);
 
-    // 通知目标服务器进行聊天消息转发
+	// 聊天消息转发到目标服务器
     TextChatMsgRsp NotifyTextChatMsg(std::string server_ip, const TextChatMsgReq& req, const Json::Value& rtvalue);
 
 private:

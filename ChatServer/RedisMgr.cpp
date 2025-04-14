@@ -1,6 +1,35 @@
 #include "RedisMgr.h"
 #include "const.h"
 #include "ConfigMgr.h"
+
+
+
+void RedisMgr::ClearAllUserOnlineStatus() {
+	redisContext* context = _con_pool->getConnection();
+	if (!context) return;
+
+	// 1. 获取所有 user_online_status_* keys
+	redisReply* reply = (redisReply*)redisCommand(context, "KEYS user_online_status_*");
+	if (!reply || reply->type != REDIS_REPLY_ARRAY) {
+		if (reply) freeReplyObject(reply);
+		_con_pool->returnConnection(context);
+		return;
+	}
+
+	for (size_t i = 0; i < reply->elements; ++i) {
+		std::string key = reply->element[i]->str;
+		// 2. 设置为离线（你也可以选择 DEL 删除）
+		redisReply* r = (redisReply*)redisCommand(context, "SET %s 0", key.c_str());
+		if (r) freeReplyObject(r);
+	}
+
+	freeReplyObject(reply);
+	_con_pool->returnConnection(context);
+}
+
+
+
+
 RedisMgr::RedisMgr() {
 	auto& gCfgMgr = ConfigMgr::Inst();
 	auto host = gCfgMgr["Redis"]["Host"];

@@ -147,14 +147,13 @@ int MysqlDao::RegUserTransaction(const std::string& name, const std::string& ema
 		}
 
 		// 插入user信息
-		std::unique_ptr<sql::PreparedStatement> pstmt_insert(con->_con->prepareStatement("INSERT INTO user (uid, name, email, pwd, nick, icon) "
-			"VALUES (?, ?, ?, ?,?,?)"));
+		std::unique_ptr<sql::PreparedStatement> pstmt_insert(con->_con->prepareStatement("INSERT INTO user (uid, name, email, pwd, icon) "
+			"VALUES (?, ?, ?, ?,?)"));
 		pstmt_insert->setInt(1,newId);
 		pstmt_insert->setString(2, name);
 		pstmt_insert->setString(3, email);
 		pstmt_insert->setString(4, pwd);
-		pstmt_insert->setString(5, name);
-		pstmt_insert->setString(6, icon);
+		pstmt_insert->setString(5, icon);
 		//执行插入
 		pstmt_insert->executeUpdate();
 		// 提交事务

@@ -37,7 +37,7 @@ void ApplyFriendPage::AddNewApply(std::shared_ptr<AddFriendApply> apply)
 
     // 创建好友申请的详细信息，并传入头像、用户名等信息
     auto apply_info = std::make_shared<ApplyInfo>(apply->_from_uid,
-             apply->_name, apply->_desc, apply->_icon, apply->_nick, apply->_sex, 0);
+             apply->_name,  apply->_icon, 0);
 
     // 设置好友申请项的详细信息
     apply_item->SetInfo(apply_info);

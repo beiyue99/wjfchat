@@ -9,39 +9,29 @@
 //存储用户信息
 class SearchInfo {
 public:
-    SearchInfo(int uid, QString name, QString nick, QString desc, int sex, QString icon);
+    SearchInfo(int uid, QString name,  QString icon);
 	int _uid;
-	QString _name;
-	QString _nick;
-	QString _desc;
-	int _sex;
+    QString _name;
     QString _icon;
 };
 
 //存储添加好友申请的相关信息
 class AddFriendApply {
 public:
-    AddFriendApply(int from_uid, QString name, QString desc,
-                   QString icon, QString nick, int sex);
+    AddFriendApply(int from_uid, QString name, QString icon);
 	int _from_uid;
-	QString _name;
-	QString _desc;
+    QString _name;
     QString _icon;
-    QString _nick;
-    int     _sex;
 };
 
 //保存好友申请的详细信息,包括处理状态
 struct ApplyInfo {
-    ApplyInfo(int uid, QString name, QString desc,
-        QString icon, QString nick, int sex, int status)
-        :_uid(uid),_name(name),_desc(desc),
-        _icon(icon),_nick(nick),_sex(sex),_status(status){}
+    ApplyInfo(int uid, QString name,QString icon, int status)
+        :_uid(uid),_name(name),
+        _icon(icon),_status(status){}
 
     ApplyInfo(std::shared_ptr<AddFriendApply> addinfo)
-        :_uid(addinfo->_from_uid),_name(addinfo->_name),
-          _desc(addinfo->_desc),_icon(addinfo->_icon),
-          _nick(addinfo->_nick),_sex(addinfo->_sex),
+        :_uid(addinfo->_from_uid),_name(addinfo->_name),_icon(addinfo->_icon),
           _status(0)
     {}
     void SetIcon(QString head){
@@ -49,37 +39,29 @@ struct ApplyInfo {
     }
     int _uid;
     QString _name;
-    QString _desc;
     QString _icon;
-    QString _nick;
-    int _sex;
     int _status;
 };
 
 // 存储用户的基本信息
 struct AuthInfo {
-    AuthInfo(int uid, QString name, QString nick, QString icon, int sex):
-        _uid(uid), _name(name), _nick(nick), _icon(icon), _sex(sex){}
+    AuthInfo(int uid, QString name, QString icon):
+        _uid(uid), _name(name),  _icon(icon){}
 
     int _uid;       // 用户的唯一ID
     QString _name;  // 用户的用户名
-    QString _nick;  // 用户的昵称
     QString _icon;  // 用户的头像
-    int _sex;       // 用户的性别 (1: 男, 2: 女)
 };
 
 // 存储认证响应信息
 struct AuthRsp {
-    AuthRsp(int peer_uid, QString peer_name, QString peer_nick, QString peer_icon, int peer_sex)
-        :_uid(peer_uid),_name(peer_name),_nick(peer_nick),
-          _icon(peer_icon),_sex(peer_sex)
+    AuthRsp(int peer_uid, QString peer_name, QString peer_icon)
+        :_uid(peer_uid),_name(peer_name),_icon(peer_icon)
     {}
 
     int _uid;       // 对方用户的唯一ID
     QString _name;  // 对方用户的用户名
-    QString _nick;  // 对方用户的昵称
     QString _icon;  // 对方用户的头像
-    int _sex;       // 对方用户的性别 (1: 男, 2: 女)
 };
 
 // 存储聊天相关信息
@@ -95,67 +77,55 @@ struct TextChatData {
 
 // 存储好友信息，包括用户信息、描述、背景信息等
 struct FriendInfo {
-    FriendInfo(int uid, QString name, QString nick, QString icon,
-        int sex, QString desc, QString back, QString last_msg="")
-        :_uid(uid), _name(name),_nick(nick),_icon(icon),_sex(sex),
-         _desc(desc),_back(back),_last_msg(last_msg){}
+    FriendInfo(int uid, QString name,QString icon, QString back, QString last_msg="")
+        :_uid(uid), _name(name),_icon(icon),_back(back),_last_msg(last_msg){}
 
     // 从 AuthInfo 构造 FriendInfo
-    FriendInfo(std::shared_ptr<AuthInfo> auth_info):_uid(auth_info->_uid),
-        _nick(auth_info->_nick),_icon(auth_info->_icon),_name(auth_info->_name),
-        _sex(auth_info->_sex){}
+    FriendInfo(std::shared_ptr<AuthInfo> auth_info):_uid(auth_info->_uid),_icon(auth_info->_icon),_name(auth_info->_name){}
 
     // 从 AuthRsp 构造 FriendInfo
-    FriendInfo(std::shared_ptr<AuthRsp> auth_rsp):_uid(auth_rsp->_uid),
-        _nick(auth_rsp->_nick),_icon(auth_rsp->_icon),_name(auth_rsp->_name),
-        _sex(auth_rsp->_sex){}
+    FriendInfo(std::shared_ptr<AuthRsp> auth_rsp):_uid(auth_rsp->_uid),_icon(auth_rsp->_icon),_name(auth_rsp->_name){}
 
     // 追加聊天记录
     void AppendChatMsgs(const std::vector<std::shared_ptr<TextChatData>> text_vec);
 
     int _uid;               // 好友的唯一ID
     QString _name;          // 好友的用户名
-    QString _nick;          // 好友的昵称
     QString _icon;          // 好友的头像
-    int _sex;               // 好友的性别
-    QString _desc;          // 好友的描述
-    QString _back;          // 好友的背景信息
+    QString _back;
     QString _last_msg;      // 好友的最后一条消息
     std::vector<std::shared_ptr<TextChatData>> _chat_msgs;  // 好友的聊天记录
 };
 
 // 存储用户的详细信息，包括聊天记录等
 struct UserInfo {
-    UserInfo(int uid, QString name, QString nick, QString icon, int sex, QString last_msg = "")
-        :_uid(uid),_name(name),_nick(nick),_icon(icon),_sex(sex),_last_msg(last_msg){}
+    UserInfo(int uid, QString name,  QString icon, QString last_msg = "")
+        :_uid(uid),_name(name),_icon(icon),_last_msg(last_msg){}
 
     // 从 AuthInfo 构造 UserInfo
     UserInfo(std::shared_ptr<AuthInfo> auth):
-        _uid(auth->_uid),_name(auth->_name),_nick(auth->_nick),
-        _icon(auth->_icon),_sex(auth->_sex),_last_msg(""){}
+        _uid(auth->_uid),_name(auth->_name),_icon(auth->_icon),_last_msg(""){}
 
     // 从 AuthRsp 构造 UserInfo
     UserInfo(std::shared_ptr<AuthRsp> auth):
-        _uid(auth->_uid),_name(auth->_name),_nick(auth->_nick),
-        _icon(auth->_icon),_sex(auth->_sex),_last_msg(""){}
+        _uid(auth->_uid),_name(auth->_name),
+        _icon(auth->_icon),_last_msg(""){}
 
     // 从 SearchInfo 构造 UserInfo
     UserInfo(std::shared_ptr<SearchInfo> search_info):
-        _uid(search_info->_uid),_name(search_info->_name),_nick(search_info->_nick),
-        _icon(search_info->_icon),_sex(search_info->_sex),_last_msg(""){}
+        _uid(search_info->_uid),_name(search_info->_name),
+        _icon(search_info->_icon),_last_msg(""){}
 
     // 从 FriendInfo 构造 UserInfo
     UserInfo(std::shared_ptr<FriendInfo> friend_info):
-        _uid(friend_info->_uid),_name(friend_info->_name),_nick(friend_info->_nick),
-        _icon(friend_info->_icon),_sex(friend_info->_sex),_last_msg("") {
+        _uid(friend_info->_uid),_name(friend_info->_name),
+        _icon(friend_info->_icon),_last_msg("") {
         _chat_msgs = friend_info->_chat_msgs;  // 保存好友的聊天记录
     }
 
     int _uid;               // 用户的唯一ID
     QString _name;          // 用户的用户名
-    QString _nick;          // 用户的昵称
     QString _icon;          // 用户的头像
-    int _sex;               // 用户的性别
     QString _last_msg;      // 用户的最后一条消息
     std::vector<std::shared_ptr<TextChatData>> _chat_msgs;  // 用户的聊天记录
 };

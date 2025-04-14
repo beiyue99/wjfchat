@@ -170,6 +170,9 @@ public:
 		_con_pool->Close();
 		_con_pool->ClearConnections();
 	}
+
+	void ClearAllUserOnlineStatus();
+
 private:
 	RedisMgr();
 	unique_ptr<RedisConPool>  _con_pool;

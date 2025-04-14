@@ -38,11 +38,11 @@ public:
     // 构造函数，可以在其中初始化所需资源（比如日志、数据库等）
     ChatServiceImpl();
 
-    // 处理添加好友的 RPC 实现
+    // 好友申请通知到目标服务器
     Status NotifyAddFriend(ServerContext* context, const AddFriendReq* request,
         AddFriendRsp* reply) override;
 
-    // 好友认证的 RPC 实现（同意添加）
+	// 通知目标服务器好友申请已验证
     Status NotifyAuthFriend(ServerContext* context,
         const AuthFriendReq* request, AuthFriendRsp* response) override;
 

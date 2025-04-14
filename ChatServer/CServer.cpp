@@ -2,6 +2,7 @@
 #include <iostream>
 #include "AsioIOServicePool.h"
 #include "UserMgr.h"
+#include "RedisMgr.h"
 
 // 构造函数：初始化服务器监听对象，并启动接收连接流程
 CServer::CServer(boost::asio::io_context& io_context, short port)
@@ -9,13 +10,30 @@ CServer::CServer(boost::asio::io_context& io_context, short port)
     _acceptor(io_context, tcp::endpoint(tcp::v4(), port)) // 绑定 IPv4 和端口号
 {
     cout << "ChatServer start success, listen on port : " << _port << endl;
+    RedisMgr::GetInstance()->ClearAllUserOnlineStatus();
+
     StartAccept(); // 开始异步接收客户端连接
 }
 
 // 析构函数：打印服务结束日志
 CServer::~CServer() {
-    cout << "Server destruct listen on port : " << _port << endl;
+    std::cout << "Server destruct listen on port : " << _port << std::endl;
+
+    // 主动遍历所有 session，通知离线
+    for (auto it = _sessions.begin(); it != _sessions.end(); ++it) {
+        const std::string& session_id = it->first;
+        std::shared_ptr<CSession>& session = it->second;
+
+        int uid = session->GetUserId();
+        if (uid > 0) {
+            std::string key = "user_online_status_" + std::to_string(uid);
+            RedisMgr::GetInstance()->Set(key, "0");
+        }
+    }
+
+    _sessions.clear();
 }
+
 
 // 处理客户端连接的回调函数
 void CServer::HandleAccept(shared_ptr<CSession> new_session, const boost::system::error_code& error) {

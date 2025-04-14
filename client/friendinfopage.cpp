@@ -28,8 +28,7 @@ void FriendInfoPage::SetInfo(std::shared_ptr<UserInfo> user_info)
     ui->icon_lb->setScaledContents(true);
 
     ui->name_lb->setText(user_info->_name);
-    ui->nick_lb->setText(user_info->_nick);
-    ui->bak_lb->setText(user_info->_nick);
+    ui->bak_lb->setText(user_info->_name);
 }
 
 void FriendInfoPage::on_msg_chat_clicked()
