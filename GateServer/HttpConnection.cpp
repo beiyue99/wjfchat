@@ -6,7 +6,7 @@ HttpConnection::HttpConnection(boost::asio::io_context& ioc) : _socket(ioc) {}
 
 // 启动连接，异步读取请求数据
 void HttpConnection::Start() {
-	auto self = shared_from_this();
+	auto self = shared_from_this(); //	// 获取当前对象的 shared_ptr，以便在异步操作中使用
 	http::async_read(_socket, _buffer, _request, [self](beast::error_code ec, std::size_t bytes_transferred) {
 		try {
 			if (ec) {

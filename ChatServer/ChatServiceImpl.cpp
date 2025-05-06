@@ -49,7 +49,7 @@ Status ChatServiceImpl::NotifyAuthFriend(ServerContext* context, const AuthFrien
 {
 	auto touid = request->touid();    // 被通知的人
 	auto fromuid = request->fromuid();  // 发出同意的人
-	auto session = UserMgr::GetInstance()->GetSession(touid);  // 查询被通知人是否在线
+	auto session = UserMgr::GetInstance()->GetSession(touid);  
 
 	Defer defer([request, reply]() {
 		reply->set_error(ErrorCodes::Success);

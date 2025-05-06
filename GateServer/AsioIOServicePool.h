@@ -22,7 +22,7 @@ public:
     void Stop(); // 停止所有 io_context 和相关线程
 
 private:
-    AsioIOServicePool(std::size_t size = 2); // 初始化指定数量的 io_context 和线程
+    AsioIOServicePool(std::size_t size = 4); // 初始化指定数量的 io_context 和线程
 
     std::vector<IOService> _ioServices; // 存储多个 io_context 实例
     std::vector<WorkPtr> _works; // 保持 io_context 存活

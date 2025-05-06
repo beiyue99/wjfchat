@@ -28,8 +28,10 @@ class StatusServiceImpl final : public StatusService::Service
 {
 public:
 	StatusServiceImpl(); 
+	// 获取当前连接数最少的聊天服务器
 	Status GetChatServer(ServerContext* context, const GetChatServerReq* request,
 		GetChatServerRsp* reply) override;
+	// 处理客户端登录请求，验证 token 是否有效
 	Status Login(ServerContext* context, const LoginReq* request,LoginRsp* reply) override;
 private:
 	void insertToken(int uid, std::string token);  // 将 uid 对应的 token 写入 Redis

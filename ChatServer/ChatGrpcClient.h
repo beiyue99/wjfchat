@@ -122,6 +122,6 @@ private:
     // 构造函数私有化，由 Singleton 管理对象唯一性
     ChatGrpcClient();
 
-    // 保存所有服务器的连接池，key 为 server_name（或 IP），value 为对应连接池
+    // 保存所有服务器的连接池，key 为 server_name，value 为对应连接池
     std::unordered_map<std::string, std::unique_ptr<ChatConPool>> _pools;
 };

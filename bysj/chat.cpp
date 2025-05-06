@@ -10,6 +10,8 @@
 //如果是获取验证码的post请求，服务器就会与验证服务发请求，
 // 调用grpc生成的GetVarifyCode方法获取验证码,发送至邮箱(通过node.js实现)
 
+
+
 //改进：一开始只有一个io_context，接收连接的acceptor用它，新连接的HttpConnection也用它
 //后来，采用连接池，一开始一个io_context与acceptor绑定，后来每有一个HttpConnection都与池子的io_context绑定
 

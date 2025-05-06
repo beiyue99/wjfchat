@@ -8,7 +8,6 @@ UserMgr::~UserMgr() {
 }
 
 // 根据用户 uid 获取对应的会话指针
-// 如果该 uid 不存在于当前服务器的会话映射表中，则返回 nullptr
 std::shared_ptr<CSession> UserMgr::GetSession(int uid)
 {
 	std::lock_guard<std::mutex> lock(_session_mtx); // 加锁，保证线程安全
@@ -32,9 +31,8 @@ void UserMgr::RmvUserSession(int uid)
 {
 	auto uid_str = std::to_string(uid);
 
-	// 注意：如果当前用户重新登录到了其他服务器，那么本服务器上再删 redis 中的记录就不安全
-	// 所以此处注释掉了删除 redis 中 IP 记录的代码
-	// RedisMgr::GetInstance()->Del(USERIPPREFIX + uid_str);
+	// 这里需要优化  ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	//RedisMgr::GetInstance()->Del(USERIPPREFIX + uid_str);
 
 	{
 		std::lock_guard<std::mutex> lock(_session_mtx); // 加锁

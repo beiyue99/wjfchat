@@ -1,9 +1,6 @@
 
 RPConPool 里创建了一批 Stub 并放入连接池，这样就能高效复用这些连接，避免重复创建 gRPC 连接，提高性能。
 
-VarifyService::NewStub(channel) 
-channel：表示 gRPC 连接，Stub 通过它来发送请求，返回的是 std::unique_ptr<VarifyService::Stub>，
-也就是 VarifyService 这个 gRPC 服务的客户端 Stub。这个 Stub 用于发送 gRPC 请求。
 
 
 

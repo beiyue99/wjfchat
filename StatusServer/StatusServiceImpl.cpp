@@ -6,7 +6,7 @@
 
 // 生成一个全局唯一的字符串标识符，用作登录 token
 std::string generate_unique_string() {
-	boost::uuids::uuid uuid = boost::uuids::random_generator()(); // 生成 UUID
+	boost::uuids::uuid uuid = boost::uuids::random_generator()(); // 通过随机生成器生成 UUID
 	std::string unique_string = to_string(uuid); // 转为字符串
 	return unique_string;
 }

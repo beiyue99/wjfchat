@@ -2,8 +2,6 @@
 #include "const.h"
 
 
-//继承自enable_shared_from_this，用于在异步操作中获取当前对象的shared_ptr,
-// 否则在异步操作中使用this会导致对象提前析构
 class CServer :public std::enable_shared_from_this<CServer> 
 {
 public:

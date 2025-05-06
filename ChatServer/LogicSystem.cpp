@@ -1,5 +1,4 @@
 #include "LogicSystem.h"
-#include "StatusGrpcClient.h"
 #include "MysqlMgr.h"
 #include "const.h"
 #include "RedisMgr.h"
@@ -95,12 +94,9 @@ void LogicSystem::DealMsg() {
 
 
 // 注册各类消息对应的处理函数（回调函数）
-// 将不同类型的消息 ID 与对应的处理函数绑定起来，存储在 _fun_callbacks 映射中
 void LogicSystem::RegisterCallBacks() {
 
 	// 注册处理登录消息的回调函数
-	// MSG_CHAT_LOGIN 是登录请求的消息 ID
-	// LoginHandler 是用于处理登录逻辑的成员函数
 	_fun_callbacks[MSG_CHAT_LOGIN] = std::bind(&LogicSystem::LoginHandler, this,
 		placeholders::_1, placeholders::_2, placeholders::_3);
 	// bind 用于将成员函数和 this 绑定，并保留参数 _1, _2, _3 占位符，代表
@@ -195,6 +191,29 @@ void LogicSystem::LoginHandler(shared_ptr<CSession> session, const short &msg_id
 		obj["back"] = friend_ele->back;
 		rtvalue["friend_list"].append(obj);
 	}
+
+
+	srand(static_cast<unsigned int>(time(nullptr)));
+	std::vector<std::string> names = {
+	"Alice", "Bob", "Charlie", "David", "Eve",
+	"Frank", "Grace", "Heidi", "Ivan", "Judy",
+	"Mallory", "Niaj", "Olivia", "Peggy", "Rupert"
+	};
+	//添加10个测试好友数据
+	for (int i = 1; i <= 10; ++i) {
+		Json::Value test_friend;
+		// 随机取一个名字
+		std::string random_name = names[rand() % names.size()];
+		test_friend["name"] = random_name;
+		test_friend["uid"] = 10000 + i; // 给测试好友一个假uid，比如从10001开始
+		// 生成1到5之间的随机数
+		int random_icon_id = rand() % 5 + 1;
+		// 拼接头像路径
+		test_friend["icon"] = ":/res/head_" + std::to_string(random_icon_id) + ".jpg";
+		rtvalue["friend_list"].append(test_friend);
+	}
+
+
 
 	auto server_name = ConfigMgr::Inst().GetValue("SelfServer", "Name");
 	//将登录数量增加
@@ -443,7 +462,6 @@ void LogicSystem::DealChatTextMsg(std::shared_ptr<CSession> session, const short
 			std::string return_str = rtvalue.toStyledString();
 			session->Send(return_str, ID_NOTIFY_TEXT_CHAT_MSG_REQ);
 		}
-
 		return ;
 	}
 

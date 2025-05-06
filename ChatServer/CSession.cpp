@@ -144,6 +144,7 @@ void CSession::AsyncReadHead(int total_len) {
 			if (ec) {
 				std::cout << "handle read failed, error is " << ec.what() << endl;
 
+
 				// 更新 Redis 中用户在线状态为 0（下线）
 				std::string online_key = "user_online_status_" + std::to_string(GetUserId());
 				RedisMgr::GetInstance()->Set(online_key, "0");
