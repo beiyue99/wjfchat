@@ -28,6 +28,8 @@ int main()
 		// 将当前服务器的登录连接数设置为 0（用于负载均衡分配）
 		RedisMgr::GetInstance()->HSet(LOGIN_COUNT, server_name, "0");
 
+		
+
 		// 构造 gRPC 服务器地址（例如 127.0.0.1:50055）
 		std::string server_address(cfg["SelfServer"]["Host"] + ":" + cfg["SelfServer"]["RPCPort"]);
 

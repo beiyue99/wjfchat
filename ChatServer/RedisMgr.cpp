@@ -2,6 +2,67 @@
 #include "const.h"
 #include "ConfigMgr.h"
 
+// RedisMgr.cpp 里（文件顶部匿名命名空间）
+namespace {
+	static const char* kCompareDelLua = R"(
+    if redis.call('GET', KEYS[1]) == ARGV[1] then
+        return redis.call('DEL', KEYS[1])
+    else
+        return 0
+    end
+)";
+	void InitRedisScripts() {
+		auto sha = RedisMgr::GetInstance()->ScriptLoad(kCompareDelLua);
+		// 把 SHA 存一处全局可取的位置，这里仍用 ConfigMgr 速存
+		ConfigMgr::Inst().operator[]("LuaSHA")._section_datas["CompareDel"] = sha;
+	}
+} // namespace
+
+// 加载脚本
+std::string RedisMgr::ScriptLoad(const std::string& lua) {
+	auto* ctx = _con_pool->getConnection();
+	if (!ctx) return "";
+
+	auto* reply = static_cast<redisReply*>(
+		redisCommand(ctx, "SCRIPT LOAD %s", lua.c_str()));
+
+	std::string sha;
+	if (reply && reply->type == REDIS_REPLY_STRING)
+		sha = reply->str;
+
+	if (reply) freeReplyObject(reply);
+	_con_pool->returnConnection(ctx);
+	return sha;      // 失败返回空串
+}
+
+// 执行脚本
+long long RedisMgr::EvalSha(const std::string& sha,
+	const std::vector<std::string>& keys,
+	const std::vector<std::string>& argv) {
+	auto* ctx = _con_pool->getConnection();
+	if (!ctx) return 0;
+
+	// 拼装 EVALSHA 命令
+	std::string cmd = "EVALSHA " + sha + " " + std::to_string(keys.size());
+	for (auto& k : keys)  cmd += " " + k;
+	for (auto& a : argv)  cmd += " " + a;
+
+	auto* reply = static_cast<redisReply*>(redisCommand(ctx, cmd.c_str()));
+
+	long long ret = 0;
+	if (reply && reply->type == REDIS_REPLY_INTEGER)
+		ret = reply->integer;
+
+	if (reply) freeReplyObject(reply);
+	_con_pool->returnConnection(ctx);
+	return ret;      // 1 = 已删，0 = 未删
+}
+
+
+
+
+
+
 
 
 void RedisMgr::ClearAllUserOnlineStatus() {
@@ -36,6 +97,9 @@ RedisMgr::RedisMgr() {
 	auto port = gCfgMgr["Redis"]["Port"];
 	auto pwd = gCfgMgr["Redis"]["Passwd"];
 	_con_pool.reset(new RedisConPool(5, host.c_str(), atoi(port.c_str()), pwd.c_str()));
+
+	InitRedisScripts();  // lua脚本
+
 }
 
 RedisMgr::~RedisMgr() {

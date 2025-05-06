@@ -154,6 +154,17 @@ class RedisMgr: public Singleton<RedisMgr>,
 	friend class Singleton<RedisMgr>;
 public:
 	~RedisMgr();
+
+	// 加载 Lua 脚本并返回SHA
+	std::string ScriptLoad(const std::string& lua);
+
+	// 按 SHA 执行脚本，比较 + 删除一次完成，返回 Redis 整数结果
+	long long EvalSha(const std::string& sha,
+		const std::vector<std::string>& keys,
+		const std::vector<std::string>& argv);
+
+
+
 	bool Get(const std::string &key, std::string& value);
 	bool Set(const std::string &key, const std::string &value);
 	bool LPush(const std::string &key, const std::string &value);

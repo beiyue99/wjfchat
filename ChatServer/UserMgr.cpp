@@ -1,7 +1,7 @@
 #include "UserMgr.h"
 #include "CSession.h"
 #include "RedisMgr.h"
-
+#include "ConfigMgr.h"
 // 析构函数，清空 uid 到 session 的映射表
 UserMgr::~UserMgr() {
 	_uid_to_session.clear();
@@ -33,6 +33,15 @@ void UserMgr::RmvUserSession(int uid)
 
 	// 这里需要优化  ++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	//RedisMgr::GetInstance()->Del(USERIPPREFIX + uid_str);
+
+	auto key = USERIPPREFIX + uid_str;
+	auto selfName = ConfigMgr::Inst().GetValue("SelfServer", "Name");
+	//auto sha = ConfigMgr::Inst()["LuaSHA"].GetValue("CompareDel");
+	auto sha = ConfigMgr::Inst().GetValue("LuaSHA","CompareDel");
+
+	// 只有当 key 的值仍是本机时才删除
+	RedisMgr::GetInstance()->EvalSha(sha, { key }, { selfName });
+
 
 	{
 		std::lock_guard<std::mutex> lock(_session_mtx); // 加锁
