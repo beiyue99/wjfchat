@@ -68,6 +68,9 @@ private:
 	// 获取指定用户的好友列表（用于登录或聊天）
 	bool GetFriendList(int self_id, std::vector<std::shared_ptr<UserInfo>>& user_list);
 
+
+	void Heartbeat(std::shared_ptr<CSession> session,
+		const short& msg_id, const std::string& msg_data); // ★ 新增
 private:
 	std::thread _worker_thread; // 后台处理逻辑消息的线程
 	std::queue<shared_ptr<LogicNode>> _msg_que; // 消息队列，缓存待处理的逻辑消息

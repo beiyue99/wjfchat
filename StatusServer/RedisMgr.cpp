@@ -23,14 +23,14 @@ bool RedisMgr::Get(const std::string& key, std::string& value)
 	}
 	 auto reply = (redisReply*)redisCommand(connect, "GET %s", key.c_str());
 	 if (reply == NULL) {
-		 std::cout << "[ GET  " << key << " ] failed" << std::endl;
+		 std::cout << "Redis [ GET  " << key << " ] failed" << std::endl;
 		// freeReplyObject(reply);
 		 _con_pool->returnConnection(connect);
 		  return false;
 	}
 
 	 if (reply->type != REDIS_REPLY_STRING) {
-		 std::cout << "[ GET  " << key << " ] failed" << std::endl;
+		 std::cout << "Redis [ GET  " << key << " ] failed" << std::endl;
 		 freeReplyObject(reply);
 		 _con_pool->returnConnection(connect);
 		 return false;
@@ -260,14 +260,15 @@ std::string RedisMgr::HGet(const std::string &key, const std::string &hkey)
 	
 	auto reply = (redisReply*)redisCommandArgv(connect, 3, argv, argvlen);
 	if (reply == nullptr ) {
-		std::cout << "Execut command [ HGet " << key << " "<< hkey <<"  ] failure ! " << std::endl;
+		std::cout << "Execut Redis command [ HGet " << key << " "<< hkey <<"  ] failure ! " << std::endl;
 		_con_pool->returnConnection(connect);
 		return "";
 	}
 
-	if ( reply->type == REDIS_REPLY_NIL) {
+	//if ( reply->type == REDIS_REPLY_NIL) {     
+	if (reply && reply->type == REDIS_REPLY_NIL) {
 		freeReplyObject(reply);
-		std::cout << "Execut command [ HGet " << key << " " << hkey << "  ] failure ! " << std::endl;
+		std::cout << "Execut Redis command [ HGet " << key << " " << hkey << "  ] failure ! " << std::endl;
 		_con_pool->returnConnection(connect);
 		return "";
 	}
@@ -278,6 +279,10 @@ std::string RedisMgr::HGet(const std::string &key, const std::string &hkey)
 	//std::cout << "Execut command [ HGet " << key << " " << hkey << " ] success ! " << std::endl;
 	return value;
 }
+
+
+
+
 
 bool RedisMgr::HDel(const std::string& key, const std::string& field)
 {

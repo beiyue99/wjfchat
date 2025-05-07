@@ -133,10 +133,10 @@ Status StatusServiceImpl::Login(ServerContext* context, const LoginReq* request,
 		return Status::OK;
 	}
 
-	// 设置为在线状态
-	RedisMgr::GetInstance()->Set(online_key, "1");
+	//// 设置为在线状态
+	//RedisMgr::GetInstance()->Set(online_key, "1");
 
-	std::cout << "User " << uid << " logged in successfully." << std::endl;
+	//std::cout << "User " << uid << " logged in successfully." << std::endl;
 	reply->set_error(ErrorCodes::Success);
 	reply->set_uid(uid);
 	reply->set_token(token);

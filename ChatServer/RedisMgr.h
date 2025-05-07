@@ -155,7 +155,9 @@ class RedisMgr: public Singleton<RedisMgr>,
 public:
 	~RedisMgr();
 
-	// 加载 Lua 脚本并返回SHA
+	// ★ 新增：返回脚本 SHA 的只读引用
+	const std::string& CompareDelSha() const;
+	// ★ 新增： 加载 Lua 脚本并返回SHA
 	std::string ScriptLoad(const std::string& lua);
 
 	// 按 SHA 执行脚本，比较 + 删除一次完成，返回 Redis 整数结果

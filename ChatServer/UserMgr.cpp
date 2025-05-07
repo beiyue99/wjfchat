@@ -36,12 +36,17 @@ void UserMgr::RmvUserSession(int uid)
 
 	auto key = USERIPPREFIX + uid_str;
 	auto selfName = ConfigMgr::Inst().GetValue("SelfServer", "Name");
-	//auto sha = ConfigMgr::Inst()["LuaSHA"].GetValue("CompareDel");
-	auto sha = ConfigMgr::Inst().GetValue("LuaSHA","CompareDel");
 
-	// 只有当 key 的值仍是本机时才删除
-	RedisMgr::GetInstance()->EvalSha(sha, { key }, { selfName });
 
+
+	////auto sha = ConfigMgr::Inst()["LuaSHA"].GetValue("CompareDel");
+	//auto sha = ConfigMgr::Inst().GetValue("LuaSHA","CompareDel");
+	//// 只有当 key 的值仍是本机时才删除
+	//RedisMgr::GetInstance()->EvalSha(sha, { key }, { selfName });
+
+	// ★ 修改：通过接口拿 SHA
+	//const std::string& sha = RedisMgr::GetInstance()->CompareDelSha();
+	//RedisMgr::GetInstance()->EvalSha(sha, { key }, { selfName });
 
 	{
 		std::lock_guard<std::mutex> lock(_session_mtx); // 加锁

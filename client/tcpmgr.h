@@ -8,6 +8,7 @@
 #include <QObject>
 #include "userdata.h"
 #include <QJsonArray>
+#include <QTimer>
 
 class TcpMgr: public QObject, public Singleton<TcpMgr>,
         public std::enable_shared_from_this<TcpMgr>
@@ -51,6 +52,10 @@ private:
 
     // 消息处理函数的映射表：根据 ReqId 查找对应的处理函数
     QMap<ReqId, std::function<void(ReqId id, int len, QByteArray data)>> _handlers;
+
+
+    QTimer _hbTimer;          // ★ 新增：心跳发送定时器
+    static const int HB_INTERVAL = 30 * 1000; // ★ 30 s
 
 public slots:
     // 用于连接服务器，接收服务器的地址和端口

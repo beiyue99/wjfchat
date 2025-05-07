@@ -1,65 +1,100 @@
 #include "tcpmgr.h"
 #include <QAbstractSocket>
 #include "usermgr.h"
-
+#include <QCoreApplication>
 TcpMgr::TcpMgr():_host(""),_port(0),_b_recv_pending(false),_message_id(0),_message_len(0)
 {
+    // 连接成功后启动心跳
+    connect(&_socket, &QTcpSocket::connected, this, [this](){
+        _hbTimer.start(HB_INTERVAL);                  // ★ 新增
+    });
+
+    // 断开时停止心跳
+    connect(&_socket, &QTcpSocket::disconnected, this, [this](){
+        qDebug() << "Disconnected from server.";
+        _hbTimer.stop();                              // ★ 新增
+
+        if (QCoreApplication::closingDown()) return;        // ★ 应用准备退出，直接返回
+
+        // ★ 新增：断开 3 秒后自动重连
+        QTimer::singleShot(3000, this, [this](){
+            if (_socket.state() == QAbstractSocket::UnconnectedState) {
+                qDebug() << "Reconnecting to" << _host << ":" << _port;
+                _socket.connectToHost(_host, _port);
+            }
+        });
+    });
+
+
+
+
+    // 发送心跳
+    connect(&_hbTimer, &QTimer::timeout, this, [this](){   // ★ 新增
+        if (_socket.state() == QAbstractSocket::ConnectedState) {
+            QByteArray empty;                          // 无负载
+            emit sig_send_data(ID_HEARTBEAT_REQ, empty);
+        }
+    });
+
+
+
+
     QObject::connect(&_socket, &QTcpSocket::connected, [&]() {
-//           qDebug() << "Connected to server!";
-           // 连接建立后发送消息
-            emit sig_con_success(true);
-       });
+        qDebug() << "Connected to server!";
+        // 连接建立后发送消息
+        emit sig_con_success(true);
+    });
 
-       QObject::connect(&_socket, &QTcpSocket::readyRead, [&]() {
-           // 当有数据可读时，读取所有数据
-           // 读取所有数据并追加到缓冲区
-           _buffer.append(_socket.readAll());
+    QObject::connect(&_socket, &QTcpSocket::readyRead, [&]() {
+    // 当有数据可读时，读取所有数据
+    // 读取所有数据并追加到缓冲区
+    _buffer.append(_socket.readAll());
 
-           QDataStream stream(&_buffer, QIODevice::ReadOnly);
-           stream.setVersion(QDataStream::Qt_5_0);
+    QDataStream stream(&_buffer, QIODevice::ReadOnly);
+    stream.setVersion(QDataStream::Qt_5_0);
 
-           forever {
-                //先解析头部
-               if(!_b_recv_pending){
-                   // 检查缓冲区中的数据是否足够解析出一个消息头（消息ID + 消息长度）
-                   if (_buffer.size() < static_cast<int>(sizeof(quint16) * 2)) {
-                       return; // 数据不够，等待更多数据
-                   }
+    forever {
+         //先解析头部
+        if(!_b_recv_pending){
+            // 检查缓冲区中的数据是否足够解析出一个消息头（消息ID + 消息长度）
+            if (_buffer.size() < static_cast<int>(sizeof(quint16) * 2)) {
+                return; // 数据不够，等待更多数据
+            }
 
-                   // 预读取消息ID和消息长度，但不从缓冲区中移除
-                   stream >> _message_id >> _message_len;
+            // 预读取消息ID和消息长度，但不从缓冲区中移除
+            stream >> _message_id >> _message_len;
 
-                   //将buffer 中的前四个字节移除
-                   _buffer = _buffer.mid(sizeof(quint16) * 2);
-                   // qDebug() << "Message ID:" << _message_id << ", Length:" << _message_len;
-                   // 消息包含好友信息，本身信息相关
-               }
+            //将buffer 中的前四个字节移除
+            _buffer = _buffer.mid(sizeof(quint16) * 2);
+            // qDebug() << "Message ID:" << _message_id << ", Length:" << _message_len;
+            // 消息包含好友信息，本身信息相关
+        }
 
-                //buffer剩余长读是否满足消息体长度，不满足则退出继续等待接受
-               if(_buffer.size() < _message_len){
-                    _b_recv_pending = true;
-                    return;
-               }
+         //buffer剩余长读是否满足消息体长度，不满足则退出继续等待接受
+        if(_buffer.size() < _message_len){
+             _b_recv_pending = true;
+             return;
+        }
 
-               _b_recv_pending = false;
-               // 读取消息体
-               QByteArray messageBody = _buffer.mid(0, _message_len);
-//               qDebug() << "receive body msg is " << messageBody ;
+        _b_recv_pending = false;
+        // 读取消息体
+        QByteArray messageBody = _buffer.mid(0, _message_len);
+//        qDebug() << "receive body msg is " << messageBody ;
 
-               _buffer = _buffer.mid(_message_len);
-               handleMsg(ReqId(_message_id),_message_len, messageBody);
-           }
+        _buffer = _buffer.mid(_message_len);
+        handleMsg(ReqId(_message_id),_message_len, messageBody);
+    }
 
-       });
+    });
 
-       //5.15 之后版本
-//       QObject::connect(&_socket, QOverload<QAbstractSocket::SocketError>::of(&QTcpSocket::errorOccurred), [&](QAbstractSocket::SocketError socketError) {
-//           Q_UNUSED(socketError)
-//           qDebug() << "Error:" << _socket.errorString();
-//       });
+//5.15 之后版本
+//    QObject::connect(&_socket, QOverload<QAbstractSocket::SocketError>::of(&QTcpSocket::errorOccurred), [&](QAbstractSocket::SocketError socketError) {
+//        Q_UNUSED(socketError)
+//        qDebug() << "Error:" << _socket.errorString();
+//    });
 
-       // 处理错误（适用于Qt 5.15之前的版本）
-        QObject::connect(&_socket, static_cast<void (QTcpSocket::*)(QTcpSocket::SocketError)>(&QTcpSocket::error),
+    // 处理错误（适用于Qt 5.15之前的版本）
+     QObject::connect(&_socket, static_cast<void (QTcpSocket::*)(QTcpSocket::SocketError)>(&QTcpSocket::error),
                             [&](QTcpSocket::SocketError socketError) {
                qDebug() << "Error:" << _socket.errorString() ;
                switch (socketError) {
@@ -87,10 +122,7 @@ TcpMgr::TcpMgr():_host(""),_port(0),_b_recv_pending(false),_message_id(0),_messa
                }
          });
 
-        // 处理连接断开
-        QObject::connect(&_socket, &QTcpSocket::disconnected, [&]() {
-            qDebug() << "Disconnected from server.";
-        });
+
         //连接发送信号用来发送数据
         QObject::connect(this, &TcpMgr::sig_send_data, this, &TcpMgr::slot_send_data);
         //注册消息
@@ -98,7 +130,8 @@ TcpMgr::TcpMgr():_host(""),_port(0),_b_recv_pending(false),_message_id(0),_messa
 }
 
 TcpMgr::~TcpMgr(){
-
+    _hbTimer.stop();                     // 防止对象销毁后仍有定时器事件
+    _socket.abort();
 }
 
 
@@ -417,10 +450,17 @@ void TcpMgr::initHandlers()
                 jsonObj["touid"].toInt(),jsonObj["text_array"].toArray());
         emit sig_text_chat_msg(msg_ptr);
       });
+
+    // 新增函数
+    _handlers.insert(ID_HEARTBEAT_RSP, [this](ReqId, int, QByteArray){
+        _hbTimer.start(HB_INTERVAL);      // ★ 服务端回包也复位
+    });
+
 }
 
 void TcpMgr::handleMsg(ReqId id, int len, QByteArray data)
 {
+    _hbTimer.start(HB_INTERVAL);      // ★ 新增  收到包即复位
    auto find_iter =  _handlers.find(id);
    if(find_iter == _handlers.end()){
         qDebug()<< "not found id ["<< id << "] to handle";

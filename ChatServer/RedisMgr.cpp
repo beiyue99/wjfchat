@@ -11,13 +11,20 @@ namespace {
         return 0
     end
 )";
-	void InitRedisScripts() {
-		auto sha = RedisMgr::GetInstance()->ScriptLoad(kCompareDelLua);
-		// 把 SHA 存一处全局可取的位置，这里仍用 ConfigMgr 速存
-		ConfigMgr::Inst().operator[]("LuaSHA")._section_datas["CompareDel"] = sha;
-	}
+
+
+	// ★ 新增：把 SHA 存在本编译单元的静态变量，不再写 ConfigMgr
+	static std::string g_compareDelSha;
+
+
+
+
 } // namespace
 
+const std::string& RedisMgr::CompareDelSha() const   // ★ 新增
+{
+	return g_compareDelSha;
+}
 // 加载脚本
 std::string RedisMgr::ScriptLoad(const std::string& lua) {
 	auto* ctx = _con_pool->getConnection();
@@ -98,8 +105,11 @@ RedisMgr::RedisMgr() {
 	auto pwd = gCfgMgr["Redis"]["Passwd"];
 	_con_pool.reset(new RedisConPool(5, host.c_str(), atoi(port.c_str()), pwd.c_str()));
 
-	InitRedisScripts();  // lua脚本
-
+	//InitRedisScripts();    // ★ 修改：这里加载脚本
+		// ★ 直接调用成员函数，避免递归 GetInstance()
+	if (g_compareDelSha.empty()) {
+		g_compareDelSha = this->ScriptLoad(kCompareDelLua);
+	}
 }
 
 RedisMgr::~RedisMgr() {
@@ -116,14 +126,14 @@ bool RedisMgr::Get(const std::string& key, std::string& value)
 	}
 	 auto reply = (redisReply*)redisCommand(connect, "GET %s", key.c_str());
 	 if (reply == NULL) {
-		 std::cout << "[ GET  " << key << " ] failed" << std::endl;
+		 std::cout << "Redis [ GET  " << key << " ] failed" << std::endl;
 		// freeReplyObject(reply);
 		 _con_pool->returnConnection(connect);
 		  return false;
 	}
 
 	 if (reply->type != REDIS_REPLY_STRING) {
-		 std::cout << "[ GET  " << key << " ] failed" << std::endl;
+		 std::cout << "[Redis  GET  " << key << " ] failed" << std::endl;
 		 freeReplyObject(reply);
 		 _con_pool->returnConnection(connect);
 		 return false;

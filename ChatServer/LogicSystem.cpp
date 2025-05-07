@@ -117,7 +117,20 @@ void LogicSystem::RegisterCallBacks() {
 	// 注册处理文本消息发送请求的处理函数（即聊天消息）
 	_fun_callbacks[ID_TEXT_CHAT_MSG_REQ] = std::bind(&LogicSystem::DealChatTextMsg, this,
 		placeholders::_1, placeholders::_2, placeholders::_3);
+
+	_fun_callbacks[ID_HEARTBEAT_REQ] = std::bind(&LogicSystem::Heartbeat,
+		this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3); // ★ 新增
 }
+
+
+
+void LogicSystem::Heartbeat(std::shared_ptr<CSession> session,
+	const short&, const std::string&) {
+	// 回复心跳包
+	session->Send("", ID_HEARTBEAT_RSP);
+	session->ResetHeartbeat();               // ★ 调用会话层复位计时器
+}
+
 
 
 void LogicSystem::LoginHandler(shared_ptr<CSession> session, const short &msg_id, const string &msg_data) {
@@ -200,18 +213,18 @@ void LogicSystem::LoginHandler(shared_ptr<CSession> session, const short &msg_id
 	"Mallory", "Niaj", "Olivia", "Peggy", "Rupert"
 	};
 	//添加10个测试好友数据
-	for (int i = 1; i <= 10; ++i) {
-		Json::Value test_friend;
-		// 随机取一个名字
-		std::string random_name = names[rand() % names.size()];
-		test_friend["name"] = random_name;
-		test_friend["uid"] = 10000 + i; // 给测试好友一个假uid，比如从10001开始
-		// 生成1到5之间的随机数
-		int random_icon_id = rand() % 5 + 1;
-		// 拼接头像路径
-		test_friend["icon"] = ":/res/head_" + std::to_string(random_icon_id) + ".jpg";
-		rtvalue["friend_list"].append(test_friend);
-	}
+	//for (int i = 1; i <= 10; ++i) {
+	//	Json::Value test_friend;
+	//	// 随机取一个名字
+	//	std::string random_name = names[rand() % names.size()];
+	//	test_friend["name"] = random_name;
+	//	test_friend["uid"] = 10000 + i; // 给测试好友一个假uid，比如从10001开始
+	//	// 生成1到5之间的随机数
+	//	int random_icon_id = rand() % 5 + 1;
+	//	// 拼接头像路径
+	//	test_friend["icon"] = ":/res/head_" + std::to_string(random_icon_id) + ".jpg";
+	//	rtvalue["friend_list"].append(test_friend);
+	//}
 
 
 
@@ -226,6 +239,15 @@ void LogicSystem::LoginHandler(shared_ptr<CSession> session, const short &msg_id
 	count++;
 	auto count_str = std::to_string(count);
 	RedisMgr::GetInstance()->HSet(LOGIN_COUNT, server_name, count_str);
+
+
+	std::string online_key = "user_online_status_" + uid_str;
+	// 设置为在线状态
+	RedisMgr::GetInstance()->Set(online_key, "1");
+
+	std::cout << "User " << uid << " logged in successfully." << std::endl;
+
+
 	//session绑定用户uid
 	session->SetUserId(uid);
 	//为用户设置登录ip server的名字
@@ -641,7 +663,6 @@ bool LogicSystem::GetBaseInfo(std::string base_key, int uid, std::shared_ptr<Use
 	}
 	else {
 		//redis中没有则查询mysql
-		//查询数据库
 		std::shared_ptr<UserInfo> user_info = nullptr;
 		user_info = MysqlMgr::GetInstance()->GetUser(uid);
 		if (user_info == nullptr) {
@@ -657,6 +678,8 @@ bool LogicSystem::GetBaseInfo(std::string base_key, int uid, std::shared_ptr<Use
 		redis_root["email"] = userinfo->email;
 		redis_root["icon"] = userinfo->icon;
 		redis_root["back"] = userinfo->back;
+		std::cout << "user login uid is  " << userinfo->uid << " name  is "
+			<< userinfo->name << " pwd is " << userinfo->pwd << " email is " << userinfo->email << endl;
 		RedisMgr::GetInstance()->Set(base_key, redis_root.toStyledString());
 	}
 	return true;
