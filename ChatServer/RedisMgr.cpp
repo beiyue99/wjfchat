@@ -16,9 +16,6 @@ namespace {
 	// ★ 新增：把 SHA 存在本编译单元的静态变量，不再写 ConfigMgr
 	static std::string g_compareDelSha;
 
-
-
-
 } // namespace
 
 const std::string& RedisMgr::CompareDelSha() const   // ★ 新增
@@ -68,10 +65,6 @@ long long RedisMgr::EvalSha(const std::string& sha,
 
 
 
-
-
-
-
 void RedisMgr::ClearAllUserOnlineStatus() {
 	redisContext* context = _con_pool->getConnection();
 	if (!context) return;
@@ -107,9 +100,13 @@ RedisMgr::RedisMgr() {
 
 	//InitRedisScripts();    // ★ 修改：这里加载脚本
 		// ★ 直接调用成员函数，避免递归 GetInstance()
+
+
 	if (g_compareDelSha.empty()) {
 		g_compareDelSha = this->ScriptLoad(kCompareDelLua);
 	}
+
+
 }
 
 RedisMgr::~RedisMgr() {

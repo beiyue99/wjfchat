@@ -154,6 +154,19 @@ class RedisMgr: public Singleton<RedisMgr>,
 	friend class Singleton<RedisMgr>;
 public:
 	~RedisMgr();
+
+	// ★ 新增：返回脚本 SHA 的只读引用
+	const std::string& CompareDelSha() const;
+	// ★ 新增： 加载 Lua 脚本并返回SHA
+	std::string ScriptLoad(const std::string& lua);
+
+	// 按 SHA 执行脚本，比较 + 删除一次完成，返回 Redis 整数结果
+	long long EvalSha(const std::string& sha,
+		const std::vector<std::string>& keys,
+		const std::vector<std::string>& argv);
+
+
+
 	bool Get(const std::string &key, std::string& value);
 	bool Set(const std::string &key, const std::string &value);
 	bool LPush(const std::string &key, const std::string &value);
@@ -170,6 +183,9 @@ public:
 		_con_pool->Close();
 		_con_pool->ClearConnections();
 	}
+
+	void ClearAllUserOnlineStatus();
+
 private:
 	RedisMgr();
 	unique_ptr<RedisConPool>  _con_pool;

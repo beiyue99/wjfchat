@@ -1,12 +1,119 @@
 #include "RedisMgr.h"
 #include "const.h"
 #include "ConfigMgr.h"
+
+// RedisMgr.cpp 里（文件顶部匿名命名空间）
+namespace {
+	static const char* kCompareDelLua = R"(
+    if redis.call('GET', KEYS[1]) == ARGV[1] then
+        return redis.call('DEL', KEYS[1])
+    else
+        return 0
+    end
+)";
+
+
+	// ★ 新增：把 SHA 存在本编译单元的静态变量，不再写 ConfigMgr
+	static std::string g_compareDelSha;
+
+
+
+
+} // namespace
+
+const std::string& RedisMgr::CompareDelSha() const   // ★ 新增
+{
+	return g_compareDelSha;
+}
+// 加载脚本
+std::string RedisMgr::ScriptLoad(const std::string& lua) {
+	auto* ctx = _con_pool->getConnection();
+	if (!ctx) return "";
+
+	auto* reply = static_cast<redisReply*>(
+		redisCommand(ctx, "SCRIPT LOAD %s", lua.c_str()));
+
+	std::string sha;
+	if (reply && reply->type == REDIS_REPLY_STRING)
+		sha = reply->str;
+
+	if (reply) freeReplyObject(reply);
+	_con_pool->returnConnection(ctx);
+	return sha;      // 失败返回空串
+}
+
+// 执行脚本
+long long RedisMgr::EvalSha(const std::string& sha,
+	const std::vector<std::string>& keys,
+	const std::vector<std::string>& argv) {
+	auto* ctx = _con_pool->getConnection();
+	if (!ctx) return 0;
+
+	// 拼装 EVALSHA 命令
+	std::string cmd = "EVALSHA " + sha + " " + std::to_string(keys.size());
+	for (auto& k : keys)  cmd += " " + k;
+	for (auto& a : argv)  cmd += " " + a;
+
+	auto* reply = static_cast<redisReply*>(redisCommand(ctx, cmd.c_str()));
+
+	long long ret = 0;
+	if (reply && reply->type == REDIS_REPLY_INTEGER)
+		ret = reply->integer;
+
+	if (reply) freeReplyObject(reply);
+	_con_pool->returnConnection(ctx);
+	return ret;      // 1 = 已删，0 = 未删
+}
+
+
+
+
+
+
+
+
+void RedisMgr::ClearAllUserOnlineStatus() {
+	redisContext* context = _con_pool->getConnection();
+	if (!context) return;
+
+	// 1. 获取所有 user_online_status_* keys
+	redisReply* reply = (redisReply*)redisCommand(context, "KEYS user_online_status_*");
+	if (!reply || reply->type != REDIS_REPLY_ARRAY) {
+		if (reply) freeReplyObject(reply);
+		_con_pool->returnConnection(context);
+		return;
+	}
+
+	for (size_t i = 0; i < reply->elements; ++i) {
+		std::string key = reply->element[i]->str;
+		// 2. 设置为离线（你也可以选择 DEL 删除）
+		redisReply* r = (redisReply*)redisCommand(context, "SET %s 0", key.c_str());
+		if (r) freeReplyObject(r);
+	}
+
+	freeReplyObject(reply);
+	_con_pool->returnConnection(context);
+}
+
+
+
+
 RedisMgr::RedisMgr() {
 	auto& gCfgMgr = ConfigMgr::Inst();
 	auto host = gCfgMgr["Redis"]["Host"];
 	auto port = gCfgMgr["Redis"]["Port"];
 	auto pwd = gCfgMgr["Redis"]["Passwd"];
 	_con_pool.reset(new RedisConPool(5, host.c_str(), atoi(port.c_str()), pwd.c_str()));
+
+	//InitRedisScripts();    // ★ 修改：这里加载脚本
+		// ★ 直接调用成员函数，避免递归 GetInstance()
+
+
+	if (g_compareDelSha.empty()) {
+		g_compareDelSha = this->ScriptLoad(kCompareDelLua);
+	}
+
+
 }
 
 RedisMgr::~RedisMgr() {
@@ -23,14 +130,14 @@ bool RedisMgr::Get(const std::string& key, std::string& value)
 	}
 	 auto reply = (redisReply*)redisCommand(connect, "GET %s", key.c_str());
 	 if (reply == NULL) {
-		 std::cout << "[ GET  " << key << " ] failed" << std::endl;
+		 std::cout << "Redis [ GET  " << key << " ] failed" << std::endl;
 		// freeReplyObject(reply);
 		 _con_pool->returnConnection(connect);
 		  return false;
 	}
 
 	 if (reply->type != REDIS_REPLY_STRING) {
-		 std::cout << "[ GET  " << key << " ] failed" << std::endl;
+		 std::cout << "[Redis  GET  " << key << " ] failed" << std::endl;
 		 freeReplyObject(reply);
 		 _con_pool->returnConnection(connect);
 		 return false;

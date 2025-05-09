@@ -10,11 +10,30 @@
 
 // 构造函数：创建 Session 对象，并生成唯一 Session ID
 CSession::CSession(boost::asio::io_context& io_context, CServer* server)
-	: _socket(io_context), _server(server), _b_close(false), _b_head_parse(false), _user_uid(0) {
+	: _socket(io_context), _server(server), _b_close(false), 
+	_b_head_parse(false), _user_uid(0),_hb_timer(io_context)  {  // ★ 新增
+
 	boost::uuids::uuid a_uuid = boost::uuids::random_generator()();
 	_session_id = boost::uuids::to_string(a_uuid); // 生成唯一会话 ID
 	_recv_head_node = make_shared<MsgNode>(HEAD_TOTAL_LEN); // 创建消息头节点缓存区
 }
+
+
+// 实现新增的函数
+void CSession::ResetHeartbeat() {
+	_hb_timer.expires_after(std::chrono::seconds(HB_TIMEOUT));
+	auto self = shared_from_this();
+	_hb_timer.async_wait([self](const boost::system::error_code& ec) {
+		if (ec == boost::asio::error::operation_aborted) return; // 被取消
+		if (!ec) {
+			std::cout << "Heartbeat timeout, uid=" << self->_user_uid << std::endl;
+			self->Close();   // 触发下线
+			self->_server->ClearSession(self->_session_id); // ② ★ 新增 补这一行
+		}
+		});
+}
+
+
 
 // 析构函数
 CSession::~CSession() {
@@ -44,6 +63,7 @@ int CSession::GetUserId() {
 // 启动 Session，开始读取消息头
 void CSession::Start() {
 	AsyncReadHead(HEAD_TOTAL_LEN); // 监听头部长度
+	ResetHeartbeat();        // ★ 新增   启动定时器
 }
 
 // 向客户端发送消息（string 版本）
@@ -80,6 +100,7 @@ void CSession::Send(char* msg, short max_length, short msgid) {
 void CSession::Close() {
 	_socket.close();
 	_b_close = true;
+	_hb_timer.cancel();      // ★ 新增
 }
 
 // 获取共享指针自身
@@ -122,6 +143,7 @@ void CSession::AsyncReadBody(int total_len) {
 			LogicSystem::GetInstance()->PostMsgToQue(
 				make_shared<LogicNode>(shared_from_this(), _recv_msg_node));
 
+			ResetHeartbeat();                                   // 新增 ★这里复位心跳定时器
 			// 5. 继续读取下一条消息头，保持会话持续接收
 			AsyncReadHead(HEAD_TOTAL_LEN);
 		}
@@ -143,6 +165,7 @@ void CSession::AsyncReadHead(int total_len) {
 			// 如果发生读取错误（客户端断开等），清理 session
 			if (ec) {
 				std::cout << "handle read failed, error is " << ec.what() << endl;
+
 
 				// 更新 Redis 中用户在线状态为 0（下线）
 				std::string online_key = "user_online_status_" + std::to_string(GetUserId());

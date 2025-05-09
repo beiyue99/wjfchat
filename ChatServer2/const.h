@@ -59,6 +59,9 @@ enum MSG_IDS {
 	ID_TEXT_CHAT_MSG_REQ = 1017, //文本聊天信息请求
 	ID_TEXT_CHAT_MSG_RSP = 1018, //文本聊天信息回复
 	ID_NOTIFY_TEXT_CHAT_MSG_REQ = 1019, //通知用户文本聊天信息
+
+	ID_HEARTBEAT_REQ = 1021,   // ★ 新增：客户端→服务器
+	ID_HEARTBEAT_RSP = 1022,   // ★ 新增：服务器→客户端
 };
 
 #define USERIPPREFIX  "uip_"

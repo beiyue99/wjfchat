@@ -26,6 +26,10 @@ class LogicSystem;  // 前向声明，业务逻辑系统类
 class CSession : public std::enable_shared_from_this<CSession>
 {
 public:
+
+    void ResetHeartbeat();           // ★ 新增：公开给 LogicSystem
+
+
     // 构造函数，传入 io_context 和服务器指针
     CSession(boost::asio::io_context& io_context, CServer* server);
 
@@ -90,6 +94,12 @@ private:
     std::shared_ptr<MsgNode> _recv_head_node;      // 当前接收到的消息头结构
 
     int _user_uid;                                 // 当前用户的 uid（登录后绑定）
+
+
+    boost::asio::steady_timer _hb_timer; // ★ 新增：心跳超时定时器
+    static constexpr int HB_INTERVAL = 30;   // ★ 新增：秒
+    static constexpr int HB_TIMEOUT = 2 * HB_INTERVAL; // ★
+
 };
 
 // 表示一个消息 + 会话的逻辑处理对象，由 LogicSystem 统一调度

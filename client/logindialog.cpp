@@ -19,6 +19,9 @@ LoginDialog::LoginDialog(QWidget *parent) :
     connect(ui->forget_label, &ClickedLabel::clicked, this, &LoginDialog::slot_forget_pwd);
     //注册http请求处理函数
     initHttpHandlers();
+
+    ui->pass_edit->setEchoMode(QLineEdit::Password);
+
     //连接登录回包信号
     connect(HttpMgr::GetInstance().get(), &HttpMgr::sig_login_mod_finish, this,
             &LoginDialog::slot_login_mod_finish);

@@ -45,8 +45,8 @@ void UserMgr::RmvUserSession(int uid)
 	//RedisMgr::GetInstance()->EvalSha(sha, { key }, { selfName });
 
 	// ★ 修改：通过接口拿 SHA
-	//const std::string& sha = RedisMgr::GetInstance()->CompareDelSha();
-	//RedisMgr::GetInstance()->EvalSha(sha, { key }, { selfName });
+	const std::string& sha = RedisMgr::GetInstance()->CompareDelSha();
+	RedisMgr::GetInstance()->EvalSha(sha, { key }, { selfName });
 
 	{
 		std::lock_guard<std::mutex> lock(_session_mtx); // 加锁

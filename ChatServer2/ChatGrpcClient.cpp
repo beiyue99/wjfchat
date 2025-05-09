@@ -29,7 +29,7 @@ ChatGrpcClient::ChatGrpcClient()
 	}
 }
 
-// 通知目标服务器发起添加好友请求
+// 好友请求通知到目标服务器
 AddFriendRsp ChatGrpcClient::NotifyAddFriend(std::string server_ip, const AddFriendReq& req)
 {
 	AddFriendRsp rsp;
@@ -112,7 +112,7 @@ bool ChatGrpcClient::GetBaseInfo(std::string base_key, int uid, std::shared_ptr<
 	return true;
 }
 
-// 通知目标服务器发起好友认证请求（同意添加好友）
+// 通知目标服务器好友申请已验证
 AuthFriendRsp ChatGrpcClient::NotifyAuthFriend(std::string server_ip, const AuthFriendReq& req)
 {
 	AuthFriendRsp rsp;

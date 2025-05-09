@@ -13,7 +13,7 @@ ChatServiceImpl::ChatServiceImpl()
 
 }
 
-// 处理添加好友请求，通知目标用户（如果在线）
+// 好友申请通知到目标服务器
 // 会通过 GRPC 从其它 ChatServer 发过来
 Status ChatServiceImpl::NotifyAddFriend(ServerContext* context, const AddFriendReq* request, AddFriendRsp* reply)
 {
@@ -44,12 +44,12 @@ Status ChatServiceImpl::NotifyAddFriend(ServerContext* context, const AddFriendR
 	return Status::OK;
 }
 
-// 处理添加好友被同意的通知
+// 通知目标服务器好友申请已验证
 Status ChatServiceImpl::NotifyAuthFriend(ServerContext* context, const AuthFriendReq* request, AuthFriendRsp* reply)
 {
 	auto touid = request->touid();    // 被通知的人
 	auto fromuid = request->fromuid();  // 发出同意的人
-	auto session = UserMgr::GetInstance()->GetSession(touid);  // 查询被通知人是否在线
+	auto session = UserMgr::GetInstance()->GetSession(touid);  
 
 	Defer defer([request, reply]() {
 		reply->set_error(ErrorCodes::Success);

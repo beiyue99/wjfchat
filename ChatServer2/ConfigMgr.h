@@ -7,10 +7,11 @@
 #include <iostream>
 
 struct SectionInfo {
-	SectionInfo(){}
+	SectionInfo() = default;
 	~SectionInfo(){
 		_section_datas.clear();
 	}
+	//~SectionInfo() = default;
 	
 	SectionInfo(const SectionInfo& src) {
 		_section_datas = src._section_datas;
