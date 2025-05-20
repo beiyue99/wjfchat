@@ -63,7 +63,7 @@ int CSession::GetUserId() {
 // 启动 Session，开始读取消息头
 void CSession::Start() {
 	AsyncReadHead(HEAD_TOTAL_LEN); // 监听头部长度
-	ResetHeartbeat();        // ★ 新增   启动定时器
+	//ResetHeartbeat();        // ★ 新增   启动定时器
 }
 
 // 向客户端发送消息（string 版本）
@@ -98,6 +98,8 @@ void CSession::Send(char* msg, short max_length, short msgid) {
 
 // 关闭连接
 void CSession::Close() {
+	if (_b_close) return;
+	std::cout << "[CLOSE] uid=" << _user_uid << " sid=" << _session_id << std::endl;
 	_socket.close();
 	_b_close = true;
 	_hb_timer.cancel();      // ★ 新增
@@ -127,13 +129,20 @@ void CSession::AsyncReadBody(int total_len) {
 
 			// 2. 判断读取长度是否满足预期
 			if (bytes_transfered < total_len) {
-				std::cout << "read length not match, read [" << bytes_transfered << "] , total ["
+	/*			std::cout << "read length not match, read [" << bytes_transfered << "] , total ["
 					<< total_len << "]" << endl;
 				Close();
 				_server->ClearSession(_session_id);
+				return;*/
+
+				/* ★ 修改 3 : 若实际读 < total_len，丢弃该帧继续读 */
+				std::cout << "body too short, drop frame. read="
+					<< bytes_transfered << " need=" << total_len << std::endl;
+				AsyncReadHead(HEAD_TOTAL_LEN);
 				return;
 			}
-
+			std::cout << "[BODY] ok id=" << _recv_msg_node->_msg_id
+				<< " bytes=" << total_len << std::endl;
 			// 3. 将读取到的内容拷贝到消息节点中
 			memcpy(_recv_msg_node->_data, _data, bytes_transfered);           // 拷贝数据
 			_recv_msg_node->_cur_len += bytes_transfered;                     // 更新已读长度
@@ -143,7 +152,7 @@ void CSession::AsyncReadBody(int total_len) {
 			LogicSystem::GetInstance()->PostMsgToQue(
 				make_shared<LogicNode>(shared_from_this(), _recv_msg_node));
 
-			ResetHeartbeat();                                   // 新增 ★这里复位心跳定时器
+			//ResetHeartbeat();                                   // 新增 ★这里复位心跳定时器
 			// 5. 继续读取下一条消息头，保持会话持续接收
 			AsyncReadHead(HEAD_TOTAL_LEN);
 		}
@@ -213,11 +222,22 @@ void CSession::AsyncReadHead(int total_len) {
 
 			// 校验消息体长度是否合法
 			if (msg_len > MAX_LENGTH) {
-				std::cout << "invalid data length is " << msg_len << endl;
+	/*			std::cout << "invalid data length is " << msg_len << endl;
 				_server->ClearSession(_session_id);
+				return;*/
+				/* ★ 修改 1 : 改为对超长包只丢弃，不关连接 */
+				std::cout << "drop packet big len = " << msg_len << std::endl;
+				AsyncReadHead(HEAD_TOTAL_LEN);         // 继续下一包头
 				return;
 			}
-
+			/* ★ 修改 2 : msg_id 超范围同样丢弃 */
+			if (msg_id > 2000 /*自定义上限*/) {
+				std::cout << "drop packet invalid id = " << msg_id << std::endl;
+				AsyncReadHead(HEAD_TOTAL_LEN);
+				return;
+			}
+			std::cout << "[HEAD] id=" << msg_id << " len=" << msg_len
+				<< " from uid=" << _user_uid << std::endl;
 			// 创建消息体节点，准备读取消息体
 			_recv_msg_node = make_shared<RecvNode>(msg_len, msg_id);
 

@@ -191,6 +191,9 @@ static const char* ChatService_method_names[] = {
   "/message.ChatService/SendChatMsg",
   "/message.ChatService/NotifyAuthFriend",
   "/message.ChatService/NotifyTextChatMsg",
+  "/message.ChatService/NotifyFileMeta",
+  "/message.ChatService/NotifyFileChunk",
+  "/message.ChatService/NotifyFileFinish",
 };
 
 std::unique_ptr< ChatService::Stub> ChatService::NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options) {
@@ -205,6 +208,9 @@ ChatService::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channe
   , rpcmethod_SendChatMsg_(ChatService_method_names[2], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_NotifyAuthFriend_(ChatService_method_names[3], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_NotifyTextChatMsg_(ChatService_method_names[4], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_NotifyFileMeta_(ChatService_method_names[5], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_NotifyFileChunk_(ChatService_method_names[6], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_NotifyFileFinish_(ChatService_method_names[7], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   {}
 
 ::grpc::Status ChatService::Stub::NotifyAddFriend(::grpc::ClientContext* context, const ::message::AddFriendReq& request, ::message::AddFriendRsp* response) {
@@ -322,6 +328,75 @@ void ChatService::Stub::experimental_async::NotifyTextChatMsg(::grpc::ClientCont
   return result;
 }
 
+::grpc::Status ChatService::Stub::NotifyFileMeta(::grpc::ClientContext* context, const ::message::FileMetaReq& request, ::message::FileMetaRsp* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::message::FileMetaReq, ::message::FileMetaRsp, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_NotifyFileMeta_, context, request, response);
+}
+
+void ChatService::Stub::experimental_async::NotifyFileMeta(::grpc::ClientContext* context, const ::message::FileMetaReq* request, ::message::FileMetaRsp* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::message::FileMetaReq, ::message::FileMetaRsp, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_NotifyFileMeta_, context, request, response, std::move(f));
+}
+
+void ChatService::Stub::experimental_async::NotifyFileMeta(::grpc::ClientContext* context, const ::message::FileMetaReq* request, ::message::FileMetaRsp* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_NotifyFileMeta_, context, request, response, reactor);
+}
+
+::grpc::ClientAsyncResponseReader< ::message::FileMetaRsp>* ChatService::Stub::PrepareAsyncNotifyFileMetaRaw(::grpc::ClientContext* context, const ::message::FileMetaReq& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::message::FileMetaRsp, ::message::FileMetaReq, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_NotifyFileMeta_, context, request);
+}
+
+::grpc::ClientAsyncResponseReader< ::message::FileMetaRsp>* ChatService::Stub::AsyncNotifyFileMetaRaw(::grpc::ClientContext* context, const ::message::FileMetaReq& request, ::grpc::CompletionQueue* cq) {
+  auto* result =
+    this->PrepareAsyncNotifyFileMetaRaw(context, request, cq);
+  result->StartCall();
+  return result;
+}
+
+::grpc::Status ChatService::Stub::NotifyFileChunk(::grpc::ClientContext* context, const ::message::FileChunkReq& request, ::message::FileChunkRsp* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::message::FileChunkReq, ::message::FileChunkRsp, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_NotifyFileChunk_, context, request, response);
+}
+
+void ChatService::Stub::experimental_async::NotifyFileChunk(::grpc::ClientContext* context, const ::message::FileChunkReq* request, ::message::FileChunkRsp* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::message::FileChunkReq, ::message::FileChunkRsp, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_NotifyFileChunk_, context, request, response, std::move(f));
+}
+
+void ChatService::Stub::experimental_async::NotifyFileChunk(::grpc::ClientContext* context, const ::message::FileChunkReq* request, ::message::FileChunkRsp* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_NotifyFileChunk_, context, request, response, reactor);
+}
+
+::grpc::ClientAsyncResponseReader< ::message::FileChunkRsp>* ChatService::Stub::PrepareAsyncNotifyFileChunkRaw(::grpc::ClientContext* context, const ::message::FileChunkReq& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::message::FileChunkRsp, ::message::FileChunkReq, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_NotifyFileChunk_, context, request);
+}
+
+::grpc::ClientAsyncResponseReader< ::message::FileChunkRsp>* ChatService::Stub::AsyncNotifyFileChunkRaw(::grpc::ClientContext* context, const ::message::FileChunkReq& request, ::grpc::CompletionQueue* cq) {
+  auto* result =
+    this->PrepareAsyncNotifyFileChunkRaw(context, request, cq);
+  result->StartCall();
+  return result;
+}
+
+::grpc::Status ChatService::Stub::NotifyFileFinish(::grpc::ClientContext* context, const ::message::FileFinishReq& request, ::message::FileFinishRsp* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::message::FileFinishReq, ::message::FileFinishRsp, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_NotifyFileFinish_, context, request, response);
+}
+
+void ChatService::Stub::experimental_async::NotifyFileFinish(::grpc::ClientContext* context, const ::message::FileFinishReq* request, ::message::FileFinishRsp* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::message::FileFinishReq, ::message::FileFinishRsp, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_NotifyFileFinish_, context, request, response, std::move(f));
+}
+
+void ChatService::Stub::experimental_async::NotifyFileFinish(::grpc::ClientContext* context, const ::message::FileFinishReq* request, ::message::FileFinishRsp* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_NotifyFileFinish_, context, request, response, reactor);
+}
+
+::grpc::ClientAsyncResponseReader< ::message::FileFinishRsp>* ChatService::Stub::PrepareAsyncNotifyFileFinishRaw(::grpc::ClientContext* context, const ::message::FileFinishReq& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::message::FileFinishRsp, ::message::FileFinishReq, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_NotifyFileFinish_, context, request);
+}
+
+::grpc::ClientAsyncResponseReader< ::message::FileFinishRsp>* ChatService::Stub::AsyncNotifyFileFinishRaw(::grpc::ClientContext* context, const ::message::FileFinishReq& request, ::grpc::CompletionQueue* cq) {
+  auto* result =
+    this->PrepareAsyncNotifyFileFinishRaw(context, request, cq);
+  result->StartCall();
+  return result;
+}
+
 ChatService::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       ChatService_method_names[0],
@@ -373,6 +448,36 @@ ChatService::Service::Service() {
              ::message::TextChatMsgRsp* resp) {
                return service->NotifyTextChatMsg(ctx, req, resp);
              }, this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      ChatService_method_names[5],
+      ::grpc::internal::RpcMethod::NORMAL_RPC,
+      new ::grpc::internal::RpcMethodHandler< ChatService::Service, ::message::FileMetaReq, ::message::FileMetaRsp, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](ChatService::Service* service,
+             ::grpc::ServerContext* ctx,
+             const ::message::FileMetaReq* req,
+             ::message::FileMetaRsp* resp) {
+               return service->NotifyFileMeta(ctx, req, resp);
+             }, this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      ChatService_method_names[6],
+      ::grpc::internal::RpcMethod::NORMAL_RPC,
+      new ::grpc::internal::RpcMethodHandler< ChatService::Service, ::message::FileChunkReq, ::message::FileChunkRsp, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](ChatService::Service* service,
+             ::grpc::ServerContext* ctx,
+             const ::message::FileChunkReq* req,
+             ::message::FileChunkRsp* resp) {
+               return service->NotifyFileChunk(ctx, req, resp);
+             }, this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      ChatService_method_names[7],
+      ::grpc::internal::RpcMethod::NORMAL_RPC,
+      new ::grpc::internal::RpcMethodHandler< ChatService::Service, ::message::FileFinishReq, ::message::FileFinishRsp, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](ChatService::Service* service,
+             ::grpc::ServerContext* ctx,
+             const ::message::FileFinishReq* req,
+             ::message::FileFinishRsp* resp) {
+               return service->NotifyFileFinish(ctx, req, resp);
+             }, this)));
 }
 
 ChatService::Service::~Service() {
@@ -407,6 +512,27 @@ ChatService::Service::~Service() {
 }
 
 ::grpc::Status ChatService::Service::NotifyTextChatMsg(::grpc::ServerContext* context, const ::message::TextChatMsgReq* request, ::message::TextChatMsgRsp* response) {
+  (void) context;
+  (void) request;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+::grpc::Status ChatService::Service::NotifyFileMeta(::grpc::ServerContext* context, const ::message::FileMetaReq* request, ::message::FileMetaRsp* response) {
+  (void) context;
+  (void) request;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+::grpc::Status ChatService::Service::NotifyFileChunk(::grpc::ServerContext* context, const ::message::FileChunkReq* request, ::message::FileChunkRsp* response) {
+  (void) context;
+  (void) request;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+::grpc::Status ChatService::Service::NotifyFileFinish(::grpc::ServerContext* context, const ::message::FileFinishReq* request, ::message::FileFinishRsp* response) {
   (void) context;
   (void) request;
   (void) response;

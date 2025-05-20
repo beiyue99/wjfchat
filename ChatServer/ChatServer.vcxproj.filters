@@ -33,12 +33,6 @@
     <ClCompile Include="LogicSystem.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="message.grpc.pb.cc">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="message.pb.cc">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="MsgNode.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -58,6 +52,15 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="ChatGrpcClient.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="message.grpc.pb.cc">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="message.pb.cc">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="FileTransferMgr.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -83,12 +86,6 @@
     <ClInclude Include="LogicSystem.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="message.grpc.pb.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="message.pb.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="MsgNode.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -111,6 +108,15 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="ChatGrpcClient.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="message.grpc.pb.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="message.pb.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="FileTransferMgr.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

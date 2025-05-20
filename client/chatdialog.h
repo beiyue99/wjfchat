@@ -10,7 +10,7 @@
 #include <memory>
 #include "userdata.h"
 #include <QListWidgetItem>
-
+#include "chatpage.h"
 #include "applyfriendpage.h"
 
 
@@ -83,6 +83,16 @@ private:
 
     // 当前选中的聊天用户 ID
     int _cur_chat_uid;
+
+    /* ★先声明，cpp 里已有实现 */
+    ChatPage* findOrCreateChatPage(int peerUid);
+
+
+    /* ★新增：fileId -> 发送者 uid 映射 */
+//    QHash<QString,int> _fid2uid;
+
+    QHash<int, ChatPage*> _uid2page;   // uid  → 页面指针
+    QHash<QString,int>    _fid2uid;    // fileId → 发送者 uid  （上一步已经提过）
 
 public slots:
     // 加载聊天用户的槽函数

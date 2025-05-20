@@ -5,6 +5,7 @@
 #include <QJsonArray>
 #include <vector>
 #include <QJsonObject>
+#include <QDebug>
 
 //存储用户信息
 class SearchInfo {
@@ -117,9 +118,14 @@ struct UserInfo {
         _icon(search_info->_icon),_last_msg(""){}
 
     // 从 FriendInfo 构造 UserInfo
-    UserInfo(std::shared_ptr<FriendInfo> friend_info):
+    UserInfo(std::shared_ptr<FriendInfo>& friend_info):
         _uid(friend_info->_uid),_name(friend_info->_name),
         _icon(friend_info->_icon),_last_msg("") {
+        if (!friend_info) {                                  // ← 保护
+            qDebug() << "www";
+            _uid = -1;
+            return;                                // 或者 throw/默认值
+        }
         _chat_msgs = friend_info->_chat_msgs;  // 保存好友的聊天记录
     }
 

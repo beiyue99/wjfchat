@@ -109,10 +109,55 @@ message TextChatMsgRsp {
 	repeated TextChatData textmsgs = 4;
 }
 
+
+
+message FileMetaReq {
+  int32  fromuid   = 1;
+  int32  touid     = 2;
+  string file_id   = 3;   // 128bit uuid → 客户端生成
+  string file_name = 4;
+  int64  file_size = 5;   // byte
+  int32  chunk_sz  = 6;   // 每片大小
+  string md5       = 7;   // optional
+}
+
+message FileMetaRsp {
+  int32  error     = 1;
+  string file_id   = 2;
+  int64  recv_size = 3;   // 断点续传：已收到
+}
+
+message FileChunkReq {
+  string file_id = 1;
+  int64  offset  = 2;     // 当前分片起始位置
+  bytes  data    = 3;
+}
+
+message FileChunkRsp {
+  int32  error   = 1;
+  string file_id = 2;
+  int64  offset  = 3;     // 服务端最新写入位置
+}
+
+message FileFinishReq {
+  string file_id = 1;
+}
+
+message FileFinishRsp {
+  int32  error   = 1;
+  string file_id = 2;
+}
+
+
+
 service ChatService {
 	rpc NotifyAddFriend(AddFriendReq) returns (AddFriendRsp) {}
 	rpc RplyAddFriend(RplyFriendReq) returns (RplyFriendRsp) {}
 	rpc SendChatMsg(SendChatMsgReq) returns (SendChatMsgRsp) {}
 	rpc NotifyAuthFriend(AuthFriendReq) returns (AuthFriendRsp) {}
 	rpc NotifyTextChatMsg(TextChatMsgReq) returns (TextChatMsgRsp){}
+
+	rpc NotifyFileMeta   (FileMetaReq)   returns (FileMetaRsp)   {}
+	rpc NotifyFileChunk  (FileChunkReq)  returns (FileChunkRsp)  {}
+	rpc NotifyFileFinish (FileFinishReq) returns (FileFinishRsp) {}
 }

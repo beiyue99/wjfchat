@@ -29,6 +29,43 @@ ChatGrpcClient::ChatGrpcClient()
 	}
 }
 
+
+
+
+FileMetaRsp ChatGrpcClient::NotifyFileMeta(
+	std::string ip, const FileMetaReq& req)
+{
+	auto stub = _pools[ip]->getConnection();
+	grpc::ClientContext ctx;
+	FileMetaRsp rsp;
+	stub->NotifyFileMeta(&ctx, req, &rsp);
+	_pools[ip]->returnConnection(std::move(stub));
+	return rsp;
+}
+
+FileChunkRsp ChatGrpcClient::NotifyFileChunk(
+	std::string ip, const FileChunkReq& req)
+{
+	auto stub = _pools[ip]->getConnection();
+	grpc::ClientContext ctx;
+	FileChunkRsp rsp;
+	stub->NotifyFileChunk(&ctx, req, &rsp);
+	_pools[ip]->returnConnection(std::move(stub));
+	return rsp;
+}
+
+FileFinishRsp ChatGrpcClient::NotifyFileFinish(
+	std::string ip, const FileFinishReq& req)
+{
+	auto stub = _pools[ip]->getConnection();
+	grpc::ClientContext ctx;
+	FileFinishRsp rsp;
+	stub->NotifyFileFinish(&ctx, req, &rsp);
+	_pools[ip]->returnConnection(std::move(stub));
+	return rsp;
+}
+
+
 // 好友请求通知到目标服务器
 AddFriendRsp ChatGrpcClient::NotifyAddFriend(std::string server_ip, const AddFriendReq& req)
 {

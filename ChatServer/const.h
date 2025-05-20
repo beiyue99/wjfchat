@@ -62,6 +62,21 @@ enum MSG_IDS {
 
 	ID_HEARTBEAT_REQ = 1021,   // ★ 新增：客户端→服务器
 	ID_HEARTBEAT_RSP = 1022,   // ★ 新增：服务器→客户端
+
+
+	// ===== 文件收发 =====
+	ID_FILE_META_REQ = 1031,   // 发送方→服务器：文件元数据
+	ID_FILE_META_RSP = 1032,   // 服务器→发送方：元数据确认/断点信息
+	ID_FILE_DATA_REQ = 1033,   // 发送方→服务器：二进制分片
+	ID_FILE_DATA_RSP = 1034,   // 服务器→发送方：分片确认(可选)
+	ID_FILE_FINISH_REQ = 1035,   // 发送方→服务器：全部分片已发完
+	ID_FILE_FINISH_RSP = 1036,   // 服务器→发送/接收方：成功/失败
+	ID_FILE_RESUME_REQ = 1037,   // 发送方→服务器：查询已收大小
+	ID_FILE_RESUME_RSP = 1038,   // 服务器→发送方：返回 offset
+
+	/* ===== 手动同意/拒绝 ===== */
+	ID_FILE_ACCEPT_REQ = 1041,   // 接收端  -> 服务器（action = 1 接受 / 0 拒绝）
+	ID_FILE_ACCEPT_RSP = 1042,   // 服务器 -> 发送端（透传或回执，见下文）
 };
 
 #define USERIPPREFIX  "uip_"

@@ -5,6 +5,21 @@
 
 int main(int argc, char *argv[])
 {
+
+//    qSetMessagePattern("%{time hh:mm:ss.zzz} %{type} %{message}");
+//    qInstallMessageHandler([](QtMsgType, const QMessageLogContext&, const QString& msg){
+//        static QFile f("client.log"); static bool inited=false;
+//        if(!inited){ f.open(QIODevice::Append|QIODevice::Text); inited=true; }
+//        QTextStream ts(&f); ts << msg << '\n';  ts.flush();
+//    });
+
+
+
+
+
+
+
+
     QApplication a(argc, argv);
 
     a.setWindowIcon(QIcon(":/res/icon.ico"));

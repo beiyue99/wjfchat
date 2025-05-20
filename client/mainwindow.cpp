@@ -20,11 +20,11 @@ MainWindow::MainWindow(QWidget *parent) :
     //连接登录界面忘记密码信号
     connect(_login_dlg, &LoginDialog::switchReset, this, &MainWindow::SlotSwitchReset);
     //连接创建聊天界面信号
-    connect(TcpMgr::GetInstance().get(),&TcpMgr::sig_swich_chatdlg, this, &MainWindow::SlotSwitchChat);
+    connect(TcpMgr::Inst(),&TcpMgr::sig_swich_chatdlg, this, &MainWindow::SlotSwitchChat);
 
 
     //测试用
-//    emit TcpMgr::GetInstance()->sig_swich_chatdlg();
+//    emit TcpMgr::Inst()->sig_swich_chatdlg();
 }
 
 MainWindow::~MainWindow()

@@ -27,11 +27,11 @@ LoginDialog::LoginDialog(QWidget *parent) :
             &LoginDialog::slot_login_mod_finish);
 
     //连接tcp连接请求的信号和槽函数
-    connect(this, &LoginDialog::sig_connect_tcp, TcpMgr::GetInstance().get(), &TcpMgr::slot_tcp_connect);
+    connect(this, &LoginDialog::sig_connect_tcp, TcpMgr::Inst(), &TcpMgr::slot_tcp_connect);
     //连接tcp管理者发出的连接成功信号
-    connect(TcpMgr::GetInstance().get(), &TcpMgr::sig_con_success, this, &LoginDialog::slot_tcp_con_finish);
+    connect(TcpMgr::Inst(), &TcpMgr::sig_con_success, this, &LoginDialog::slot_tcp_con_finish);
     //连接tcp管理者发出的登陆失败信号
-    connect(TcpMgr::GetInstance().get(), &TcpMgr::sig_login_failed, this, &LoginDialog::slot_login_failed);
+    connect(TcpMgr::Inst(), &TcpMgr::sig_login_failed, this, &LoginDialog::slot_login_failed);
 
     initHead();
 }
@@ -229,7 +229,7 @@ void LoginDialog::slot_tcp_con_finish(bool bsuccess)
         // 发送聊天登录请求给聊天服务器，使用 TCP 长连接发送数据
         // ReqId::ID_CHAT_LOGIN 是表示“聊天模块登录”的请求类型
         // jsonData 包含用户 uid 和 token，在服务端验证通过后进入聊天模块
-        emit TcpMgr::GetInstance()->sig_send_data(ReqId::ID_CHAT_LOGIN, jsonData);
+        emit TcpMgr::Inst()->sig_send_data(ReqId::ID_CHAT_LOGIN, jsonData);
     } else {
         // TCP 连接失败，提示网络异常
         showTip(tr("网络异常"), false);

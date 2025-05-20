@@ -2,8 +2,15 @@
 #include <QAbstractSocket>
 #include "usermgr.h"
 #include <QCoreApplication>
+#include <QThread>
+#include <QtEndian>
+#include "chatpage.h"
+
+
 TcpMgr::TcpMgr():_host(""),_port(0),_b_recv_pending(false),_message_id(0),_message_len(0)
 {
+
+    qRegisterMetaType<ReqId>("ReqId");
     // 连接成功后启动心跳
     connect(&_socket, &QTcpSocket::connected, this, [this](){
         _hbTimer.start(HB_INTERVAL);                  // ★ 新增
@@ -11,7 +18,7 @@ TcpMgr::TcpMgr():_host(""),_port(0),_b_recv_pending(false),_message_id(0),_messa
 
     // 断开时停止心跳
     connect(&_socket, &QTcpSocket::disconnected, this, [this](){
-        qDebug() << "Disconnected from server.";
+        qWarning() << "[SOCK] disconnected() emitted";
         _hbTimer.stop();                              // ★ 新增
 
         if (QCoreApplication::closingDown()) return;        // ★ 应用准备退出，直接返回
@@ -26,7 +33,8 @@ TcpMgr::TcpMgr():_host(""),_port(0),_b_recv_pending(false),_message_id(0),_messa
     });
 
 
-
+    connect(&_socket, &QTcpSocket::bytesWritten,
+            this,  &TcpMgr::slot_continue_write);   // ★ 新槽
 
     // 发送心跳
     connect(&_hbTimer, &QTimer::timeout, this, [this](){   // ★ 新增
@@ -37,55 +45,36 @@ TcpMgr::TcpMgr():_host(""),_port(0),_b_recv_pending(false),_message_id(0),_messa
     });
 
 
-
-
     QObject::connect(&_socket, &QTcpSocket::connected, [&]() {
         qDebug() << "Connected to server!";
         // 连接建立后发送消息
         emit sig_con_success(true);
     });
 
-    QObject::connect(&_socket, &QTcpSocket::readyRead, [&]() {
-    // 当有数据可读时，读取所有数据
-    // 读取所有数据并追加到缓冲区
-    _buffer.append(_socket.readAll());
+    connect(&_socket, &QTcpSocket::readyRead, this, [this]()
+    {
+        _buffer.append(_socket.readAll());
 
-    QDataStream stream(&_buffer, QIODevice::ReadOnly);
-    stream.setVersion(QDataStream::Qt_5_0);
+        while (true) {
+            if (_buffer.size() < 4) break;
 
-    forever {
-         //先解析头部
-        if(!_b_recv_pending){
-            // 检查缓冲区中的数据是否足够解析出一个消息头（消息ID + 消息长度）
-            if (_buffer.size() < static_cast<int>(sizeof(quint16) * 2)) {
-                return; // 数据不够，等待更多数据
-            }
+            uchar head[4];
+            memcpy(head, _buffer.constData(), 4);
 
-            // 预读取消息ID和消息长度，但不从缓冲区中移除
-            stream >> _message_id >> _message_len;
+            quint16 msgId  = qFromBigEndian<quint16>(head);
+            quint16 msgLen = qFromBigEndian<quint16>(head + 2);
 
-            //将buffer 中的前四个字节移除
-            _buffer = _buffer.mid(sizeof(quint16) * 2);
-            // qDebug() << "Message ID:" << _message_id << ", Length:" << _message_len;
-            // 消息包含好友信息，本身信息相关
+            if (_buffer.size() < 4 + msgLen) break;
+
+            _buffer.remove(0,4);
+            QByteArray body = _buffer.left(msgLen);
+            _buffer.remove(0,msgLen);
+
+            handleMsg(static_cast<ReqId>(msgId), msgLen, body);
         }
-
-         //buffer剩余长读是否满足消息体长度，不满足则退出继续等待接受
-        if(_buffer.size() < _message_len){
-             _b_recv_pending = true;
-             return;
-        }
-
-        _b_recv_pending = false;
-        // 读取消息体
-        QByteArray messageBody = _buffer.mid(0, _message_len);
-//        qDebug() << "receive body msg is " << messageBody ;
-
-        _buffer = _buffer.mid(_message_len);
-        handleMsg(ReqId(_message_id),_message_len, messageBody);
-    }
 
     });
+
 
 //5.15 之后版本
 //    QObject::connect(&_socket, QOverload<QAbstractSocket::SocketError>::of(&QTcpSocket::errorOccurred), [&](QAbstractSocket::SocketError socketError) {
@@ -121,18 +110,157 @@ TcpMgr::TcpMgr():_host(""),_port(0),_b_recv_pending(false),_message_id(0),_messa
                        break;
                }
          });
-
-
         //连接发送信号用来发送数据
-        QObject::connect(this, &TcpMgr::sig_send_data, this, &TcpMgr::slot_send_data);
+//        connect(this, &TcpMgr::sig_send_data, this, &TcpMgr::slot_send_data);
+        connect(this,&TcpMgr::sig_send_data,this,&TcpMgr::slot_send_data, Qt::QueuedConnection);
+
+
+
+
+        /* 把后台线程抛上来的原始包写进 socket —— Qt::QueuedConnection 保证跨线程安全 */
+        connect(this, &TcpMgr::sig_raw_packet,
+                this, [this](ReqId id, const QByteArray& body)
+        {
+            QByteArray pkt;
+            QDataStream out(&pkt, QIODevice::WriteOnly);
+            out.setByteOrder(QDataStream::BigEndian);
+            out << quint16(id) << quint16(body.size());
+            pkt.append(body);
+            _socket.write(pkt);
+        }, Qt::QueuedConnection);
         //注册消息
         initHandlers();
+        // ① 连接状态变化
+        connect(&_socket,&QTcpSocket::stateChanged, this,
+                [](QTcpSocket::SocketState st){
+            qDebug().noquote() << QDateTime::currentDateTime().toString("hh:mm:ss.zzz")
+                               << "[SOCK] state =" << st;          // 0-6
+        });
+
+        // ② Qt 级错误 (包括 10054)
+        connect(&_socket,
+                QOverload<QAbstractSocket::SocketError>::of(&QTcpSocket::error),
+                this,
+                [](QAbstractSocket::SocketError e){
+                    qDebug().noquote()
+                            << QDateTime::currentDateTime().toString("hh:mm:ss.zzz")
+                            << "[SOCK] error =" << e;
+        });
+
+
+        // ③ 每次真正写入内核缓冲的字节数
+        connect(&_socket,&QTcpSocket::bytesWritten, this,
+                [](qint64 n){
+            qDebug().noquote() << QDateTime::currentDateTime().toString("hh:mm:ss.zzz")
+                               << "[SOCK] bytesWritten" << n;
+        });
+
+        connect(this, &TcpMgr::sig_raw_packet,
+                this, &TcpMgr::slot_send_data,
+                Qt::QueuedConnection);     // 一定要 Queued
+
+
+
+        // TcpMgr 构造函数末尾加一次即可
+        connect(&_socket, &QTcpSocket::readyRead, this,
+                [](){ qDebug() << "[SOCK] readyRead"; });
+
+        connect(&_socket, &QTcpSocket::bytesWritten, this,
+                [](qint64 n){ qDebug() << "[SOCK] bytesWritten" << n; });
+
+
 }
 
 TcpMgr::~TcpMgr(){
     _hbTimer.stop();                     // 防止对象销毁后仍有定时器事件
-    _socket.abort();
+//    _socket.abort();
 }
+
+TcpMgr* TcpMgr::Inst()
+{
+    /* 进程生命周期只 new 一次，Qt 自动在主线程析构所有 QObject，
+       不需要手动 delete；泄露由 OS 回收。*/
+    static TcpMgr* s = new TcpMgr;
+    return s;
+}
+
+
+/* 生成完整包并压入队列，由主线程负责真正写 */
+void TcpMgr::enqueuePacket(ReqId id, const QByteArray& body)
+{
+    QByteArray pkt;
+    QDataStream out(&pkt, QIODevice::WriteOnly);
+    out.setByteOrder(QDataStream::BigEndian);
+    out << quint16(id) << quint16(body.size());
+    pkt.append(body);
+
+    {
+        QMutexLocker lk(&_queueMtx);
+        _sendQueue.enqueue(pkt);
+    }
+    QMetaObject::invokeMethod(this, "slot_continue_write",
+                              Qt::QueuedConnection);
+}
+
+
+void TcpMgr::slot_continue_write()
+{
+    QMutexLocker lk(&_queueMtx);
+    if (_writing) return;                 // 还有一次写尚未结束
+
+    if (_sendQueue.isEmpty()) return;
+
+    QByteArray pkt = _sendQueue.dequeue();
+    _writing = true;                      // 标记正在写
+    lk.unlock();
+
+    _socket.write(pkt);                   // 写完会再次触发 bytesWritten
+    _socket.flush();
+
+    lk.relock();
+    _writing = false;                     // 本次写完
+}
+
+
+/* ========== ★ 新增：分片发送线程槽 ========= */
+void TcpMgr::slot_send_file(const QString& filePath,
+                            const QString& fileId,
+                            qint64  resumeOff,
+                            int32_t toUid)
+{
+    QFile f(filePath);
+    if (!f.open(QIODevice::ReadOnly)) return;
+    f.seek(resumeOff);
+
+    constexpr qint64 CHUNK = 900;
+    qint64 off = resumeOff;
+
+    while (!f.atEnd())
+    {
+        QByteArray buf = f.read(CHUNK);
+
+        QJsonObject j{
+            {"file_id", fileId},
+            {"offset" , off},
+            {"touid"  , toUid},
+            {"data"   , QString(buf.toBase64())}
+        };
+        off += buf.size();
+
+        enqueuePacket(ID_FILE_DATA_REQ,
+                      QJsonDocument(j).toJson(QJsonDocument::Compact));
+
+        emit sig_file_progress(fileId, off);
+    }
+
+    QJsonObject fin{{"file_id", fileId}, {"touid", toUid}};
+    enqueuePacket(ID_FILE_FINISH_REQ,
+                  QJsonDocument(fin).toJson(QJsonDocument::Compact));
+
+    // ② 本地 UI 也要知道已经结束 —— 关键就在这行
+    emit sig_file_progress(fileId, -1);      // <—— 新增
+}
+
 
 
 
@@ -456,13 +584,118 @@ void TcpMgr::initHandlers()
         _hbTimer.start(HB_INTERVAL);      // ★ 服务端回包也复位
     });
 
+    /* ① 文件元数据 1031  FileMeta 通知 */
+    _handlers[ID_FILE_META_REQ] =
+        [this](ReqId, int, const QByteArray& body)
+    {
+
+        qDebug() << "[TCP] recv 1031 JSON =" << QString::fromUtf8(body);
+
+        const QJsonObject o = QJsonDocument::fromJson(body).object();
+
+        const QString fid   = o["file_id"].toString();
+
+        //------------------ 只改下面这一行 ------------------
+//        QString strFrom = o["fromuid"].toString();
+//        bool ok = false;
+//        int from = strFrom.toInt(&ok);
+//        if (!ok) {
+//            qWarning() << "[TCP] 无法解析 fromuid，原始值为:" << o["fromuid"];
+//            return;
+//        }
+            int from = o.value("fromuid").toVariant().toInt();   // ← 关键一行
+
+            qDebug() << "fromid is xxxxxxxxxxxx" << from;
+
+           const qint64  size  = o["size"].toVariant().toLongLong();
+           const QString fname = o["fname"].toString();
+
+        qDebug() << "[TCP] 1031 for fid" << fid << "from" << from;
+
+        emit sig_in_file_meta(fid, from, size, fname);
+
+        if (!UserMgr::GetInstance()->GetFriendById(from)) {
+            qWarning() << "⚠️ 无法找到发送者 uid=" << from << "，file_id=" << fid;
+        }
+
+    };
+
+
+    /* ② 文件分片 1033  FileChunk*/
+    _handlers[ID_FILE_DATA_REQ] =
+        [this](ReqId, int, QByteArray body)
+    {
+        QJsonObject o = QJsonDocument::fromJson(body).object();
+        emit sig_in_file_chunk(                       //  ← 还是老信号
+                o["file_id"].toString(),
+                o["offset"].toVariant().toLongLong(),
+                QByteArray::fromBase64(
+                        o["data"].toString().toUtf8()));
+    };
+
+
+
+
+    /* ③ 文件完成 1035  FileFinish 通知 */
+    // 添加在 1041 响应处理里
+    _handlers[ID_FILE_FINISH_REQ] =
+        [this](ReqId, int, const QByteArray& body)
+    {
+        const QJsonObject o = QJsonDocument::fromJson(body).object();
+        const QString fid   = o["file_id"].toString();
+        qDebug() << "[TCP] 1041 文件传输完成:" << fid;
+        // 通知所有 UI 层
+        emit sig_in_file_finish(fid);             // ← ★ 就是这一句
+        if (_recvMap.contains(fid)) {
+            auto ctx = _recvMap.value(fid);
+            if (ctx && ctx->bubble) {
+                ctx->bubble->SetFileStatus(RecvFileBubble::STATUS_FINISHED);
+            }
+        }
+    };
+
+
+    /* TcpMgr —— 1032 回包 handler */
+    _handlers[ID_FILE_META_RSP] = [this](ReqId, int, QByteArray data)
+    {
+        auto obj = QJsonDocument::fromJson(data).object();
+        QString  fileId   = obj["file_id"].toString();
+        qint64   recvSize = obj["recv_size"].toVariant().toLongLong();
+        emit sig_file_meta_rsp(fileId, recvSize, -1);   // 无 touid
+    };
+
+    _handlers[ID_FILE_FINISH_RSP] =
+        [](ReqId, int, QByteArray){
+            // nothing to do, just avoid ASSERT failure
+        };
+
+
+
+    _handlers[ID_FILE_DATA_RSP] = [](ReqId, int, QByteArray){};
+
+
+    _handlers[ID_FILE_ACCEPT_RSP] =
+        [this](ReqId, int, const QByteArray& body){
+            QJsonObject o = QJsonDocument::fromJson(body).object();
+            QString fid  = o["file_id"].toString();
+            int action   = o["action"].toInt();
+            emit sig_file_accept(fid, action);      // 自定义信号
+        };
+
+
+
 }
 
 void TcpMgr::handleMsg(ReqId id, int len, QByteArray data)
 {
+    qDebug().noquote()
+        << "[DISPATCH] id=" << id
+        << " len="        << len;
     _hbTimer.start(HB_INTERVAL);      // ★ 新增  收到包即复位
    auto find_iter =  _handlers.find(id);
    if(find_iter == _handlers.end()){
+       qWarning().noquote() << "[TCP] unknown id" << int(id)
+                            << "len" << len;
         qDebug()<< "not found id ["<< id << "] to handle";
         return ;
    }
@@ -479,29 +712,10 @@ void TcpMgr::slot_tcp_connect(ServerInfo si)
     _socket.connectToHost(si.Host, _port);
 }
 
-void TcpMgr::slot_send_data(ReqId reqId, QByteArray dataBytes)
+void TcpMgr::slot_send_data(ReqId id, QByteArray body)
 {
-    uint16_t id = reqId;
-
-    // 计算长度（使用网络字节序转换）
-    quint16 len = static_cast<quint16>(dataBytes.length());
-
-    // 创建一个QByteArray用于存储要发送的所有数据
-    QByteArray block;
-    QDataStream out(&block, QIODevice::WriteOnly);
-
-    // 设置数据流使用网络字节序
-    out.setByteOrder(QDataStream::BigEndian);
-
-    // 写入ID和长度
-    out << id << len;
-
-    // 添加字符串数据
-    block.append(dataBytes);
-
-    // 发送数据
-    _socket.write(block);
-//    qDebug() << "tcp mgr send byte data is " << block ;   //发送token 消息id，uid，长度等
+    enqueuePacket(id, body);              // ← 只排队
 }
+
 
 

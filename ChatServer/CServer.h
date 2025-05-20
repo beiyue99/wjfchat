@@ -4,6 +4,7 @@
 #include <memory.h>
 #include <map>
 #include <mutex>
+#include <unordered_map>
 
 using namespace std;
 using boost::asio::ip::tcp;
@@ -23,6 +24,8 @@ public:
     // 从会话管理表中移除某个 Session（比如断开连接时调用）
     void ClearSession(std::string session_id);
 
+
+    std::shared_ptr<CSession> FindByUid(int uid);         // 转发时调用
 private:
     // 处理新连接的回调函数（当有客户端连接进来时自动调用）
     void HandleAccept(shared_ptr<CSession> new_session, const boost::system::error_code& error);
@@ -44,4 +47,6 @@ private:
 
     // 用于保护 sessions 列表的互斥锁，防止多线程访问冲突
     std::mutex _mutex;
+
+
 };

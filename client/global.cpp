@@ -19,3 +19,4 @@ std::function<QString(QString)> xorString = [](QString input){
 
 QString gate_url_prefix = "";
 
+int g_selfUid = 0;

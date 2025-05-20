@@ -19,6 +19,7 @@
 #include "lineitem.h"
 #include "tcpmgr.h"
 #include "usermgr.h"
+#include <QFileDialog>
 
 
 ChatDialog::ChatDialog(QWidget *parent) :
@@ -124,13 +125,13 @@ ChatDialog::ChatDialog(QWidget *parent) :
     ui->search_list->SetSearchEdit(ui->search_edit);
 
     // 监听 TCP 层发来的好友申请消息，跳转到相应 UI
-    connect(TcpMgr::GetInstance().get(), &TcpMgr::sig_friend_apply, this, &ChatDialog::slot_apply_friend);
+    connect(TcpMgr::Inst(), &TcpMgr::sig_friend_apply, this, &ChatDialog::slot_apply_friend);
 
     // 监听 TCP 层发来的认证好友请求
-    connect(TcpMgr::GetInstance().get(), &TcpMgr::sig_add_auth_friend, this, &ChatDialog::slot_add_auth_friend);
+    connect(TcpMgr::Inst(), &TcpMgr::sig_add_auth_friend, this, &ChatDialog::slot_add_auth_friend);
 
     // 监听服务器返回的好友认证结果
-    connect(TcpMgr::GetInstance().get(), &TcpMgr::sig_auth_rsp, this, &ChatDialog::slot_auth_rsp);
+    connect(TcpMgr::Inst(), &TcpMgr::sig_auth_rsp, this, &ChatDialog::slot_auth_rsp);
 
     // 监听联系人页点击用户头像信号，跳转用户信息界面
     connect(ui->con_user_list, &ContactUserList::sig_switch_friend_info_page, this, &ChatDialog::slot_friend_info_page);
@@ -148,13 +149,78 @@ ChatDialog::ChatDialog(QWidget *parent) :
     connect(ui->chat_user_list, &QListWidget::itemClicked, this, &ChatDialog::slot_item_clicked);
 
     // 监听接收到对方发来的聊天消息通知
-    connect(TcpMgr::GetInstance().get(), &TcpMgr::sig_text_chat_msg, this, &ChatDialog::slot_text_chat_msg);
+    connect(TcpMgr::Inst(), &TcpMgr::sig_text_chat_msg, this, &ChatDialog::slot_text_chat_msg);
 
     // 监听当前用户发送完消息后的信号，将消息显示在聊天页面
     connect(ui->chat_page, &ChatPage::sig_append_send_chat_msg, this, &ChatDialog::slot_append_send_chat_msg);
 
 
     connect(this, &ChatDialog::cancel_red, ui->side_contact_lb, &StateWidget::slot_on_cancel_red);
+
+    auto tcp = TcpMgr::Inst();
+
+    /* ① 文件元数据 -------------------------------------------------- */
+    connect(tcp,&TcpMgr::sig_in_file_meta,this,
+            [this](QString fid,int from,qint64 size,QString fname)
+    {
+
+        qDebug() << "[ChatDialog] ✅ 收到 meta，fid =" << fid << ", from =" << from;
+        _fid2uid.insert(fid, from);                 // 记录一手
+        ChatPage* page = findOrCreateChatPage(from);
+        page->recvFileMeta(fid, from, size, fname);
+//        findOrCreateChatPage(from)->recvFileMeta(fid, from, size, fname);
+    });
+
+    /* ② 文件分片 ---------------------------------------------------- */
+    connect(tcp, &TcpMgr::sig_in_file_chunk, this,
+        [this](QString fid, qint64 off, QByteArray data)
+    {
+        int fromUid = _fid2uid.value(fid, -1);
+        if (fromUid == -1) {
+            qWarning() << "[ChatDialog] ⚠️ 未找到文件对应的 fromUid，fid =" << fid;
+            return;
+        }
+
+        ChatPage* page = findOrCreateChatPage(fromUid);
+        page->recvFileData(fid, off, data);   // ✅ 注意这里是 ChatPage::recvFileData()
+    });
+
+
+    /* ③ 文件完成 ---------------------------------------------------- */
+    /* ③ 文件完成 ---------------------------------------------------- */
+    connect(tcp, &TcpMgr::sig_in_file_finish,
+            this, [this](const QString& fid)
+    {
+        int fromUid = _fid2uid.value(fid, -1);
+        if (fromUid == -1) return;
+
+        auto page = findOrCreateChatPage(fromUid);
+
+        auto ctx = _recvMap.value(fid);
+        if (!ctx) return;
+
+        /* ⬇️ 关键：只有点过“接受”才继续保存 -------------------- */
+        if (!ctx->accepted) {
+            qDebug() << "[recv] user never accepted, ignore file_finish";
+            return;                         // ← 这行解决立刻弹框的问题
+        }
+
+        if (ctx->tmp && ctx->tmp->isOpen())
+            ctx->tmp->close();
+
+        QString path = QFileDialog::getSaveFileName(page,
+                                                    u8"保存文件", ctx->name);
+        if (!path.isEmpty()) {
+            QFile::copy(ctx->tmp->fileName(), path);
+            ctx->bubble->SetFileStatus(RecvFileBubble::STATUS_FINISHED);
+            qDebug() << "[recv] 文件保存成功：" << path;
+        } else {
+            qDebug() << "[recv] 用户取消保存";
+        }
+    });
+
+
+
 
 }
 
@@ -595,6 +661,39 @@ void ChatDialog::ShowSearch(bool bsearch)
 		ui->search_edit->clearFocus();
     }
 }
+
+ChatPage* ChatDialog::findOrCreateChatPage(int peerUid)
+{
+    if (_uid2page.contains(peerUid))
+        return _uid2page.value(peerUid);
+
+
+    static QHash<int, std::shared_ptr<FriendInfo>> _placeHolders;
+
+    auto fPtr = UserMgr::GetInstance()->GetFriendById(peerUid);
+    if (!fPtr) {
+        if (!_placeHolders.contains(peerUid)) {
+            _placeHolders.insert(peerUid,
+                std::make_shared<FriendInfo>(
+                    peerUid,
+                    QString::number(peerUid),
+                    ":/res/default_head.png",
+                    ""));
+        }
+        fPtr = _placeHolders.value(peerUid);
+    }
+
+    auto uiPtr = std::make_shared<UserInfo>(fPtr);   // 现在一定非空
+    auto page  = new ChatPage;
+    page->SetUserInfo(uiPtr);
+    ui->stackedWidget->addWidget(page);
+
+    ui->stackedWidget->setCurrentWidget(page);
+
+    _uid2page.insert(peerUid, page);
+    return page;
+}
+
 
 void ChatDialog::slot_loading_chat_user()
 {

@@ -5,6 +5,7 @@
 #include "global.h"
 #include "httpmgr.h"
 
+
 ResetDialog::ResetDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::ResetDialog)
@@ -28,10 +29,15 @@ ResetDialog::ResetDialog(QWidget *parent) :
          checkVarifyValid();
     });
 
+
+
+
     //连接reset相关信号和注册处理回调
     initHandlers();
     connect(HttpMgr::GetInstance().get(), &HttpMgr::sig_reset_mod_finish, this,
             &ResetDialog::slot_reset_mod_finish);
+
+
 
 }
 

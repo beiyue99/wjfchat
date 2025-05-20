@@ -527,7 +527,7 @@ void ApplyFriend::SlotApplySure()
     QByteArray jsonData = doc.toJson(QJsonDocument::Compact);
 
     // 通过 TCP 管理器发出添加好友请求
-    emit TcpMgr::GetInstance()->sig_send_data(ReqId::ID_ADD_FRIEND_REQ, jsonData);
+    emit TcpMgr::Inst()->sig_send_data(ReqId::ID_ADD_FRIEND_REQ, jsonData);
 
     // 隐藏当前窗口
     this->hide();

@@ -40,7 +40,25 @@ enum ReqId{
 
     ID_HEARTBEAT_REQ = 1021,   // ★ 新增
     ID_HEARTBEAT_RSP = 1022,   // ★ 新增
+
+    // ===== 文件收发 =====
+    ID_FILE_META_REQ     = 1031,
+    ID_FILE_META_RSP     = 1032,
+    ID_FILE_DATA_REQ     = 1033,
+    ID_FILE_DATA_RSP     = 1034,
+    ID_FILE_FINISH_REQ   = 1035,
+    ID_FILE_FINISH_RSP   = 1036,
+
+    /* ===== 手动同意/拒绝 ===== */
+    ID_FILE_ACCEPT_REQ = 1041,   // 接收端  -> 服务器（action = 1 接受 / 0 拒绝）
+    ID_FILE_ACCEPT_RSP = 1042,   // 服务器 -> 发送端（透传或回执，见下文）
 };
+
+#include <QMetaType>
+
+Q_DECLARE_METATYPE(ReqId)      // ← 就这一行
+
+
 
 enum ErrorCodes{
     SUCCESS = 0,     // 操作成功
@@ -146,5 +164,6 @@ const std::vector<QString> names = {
 
 const int CHAT_COUNT_PER_PAGE = 13;
 
+extern int g_selfUid;  // 新增
 
 #endif // GLOBAL_H

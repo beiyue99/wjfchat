@@ -24,11 +24,11 @@ ContactUserList::ContactUserList(QWidget *parent): _add_friend_item(nullptr)
     //连接点击的信号和槽
     connect(this, &QListWidget::itemClicked, this, &ContactUserList::slot_item_clicked);
     //链接对端同意认证后通知的信号
-    connect(TcpMgr::GetInstance().get(), &TcpMgr::sig_add_auth_friend,this,
+    connect(TcpMgr::Inst(), &TcpMgr::sig_add_auth_friend,this,
             &ContactUserList::slot_add_auth_firend);
 
     //链接自己点击同意认证后界面刷新
-    connect(TcpMgr::GetInstance().get(), &TcpMgr::sig_auth_rsp,this,
+    connect(TcpMgr::Inst(), &TcpMgr::sig_auth_rsp,this,
             &ContactUserList::slot_auth_rsp);
 }
 

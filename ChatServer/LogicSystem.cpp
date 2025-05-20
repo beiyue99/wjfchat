@@ -3,9 +3,12 @@
 #include "const.h"
 #include "RedisMgr.h"
 #include "UserMgr.h"
+#include "FileTransferMgr.h"
 #include "ChatGrpcClient.h"
-
+#include <boost/beast/core/detail/base64.hpp>
+#include "CServer.h"        // ★ 必须加
 using namespace std;
+namespace b64 = boost::beast::detail::base64;
 
 LogicSystem::LogicSystem():_b_stop(false){
 	RegisterCallBacks();
@@ -18,6 +21,158 @@ LogicSystem::~LogicSystem(){
 	_worker_thread.join();
 }
 
+
+/* ---------- Base64 工具 ---------- */
+static std::string decode64(const std::string& in)
+{
+	std::string out;
+	out.resize(boost::beast::detail::base64::decoded_size(in.size()));
+
+	// 这行改动：把 out.data() 换成 &out[0]
+	auto sz = boost::beast::detail::base64::decode(&out[0],
+		in.data(),
+		in.size());
+
+	out.resize(sz.first);     // sz.first = 实际写入字节数
+	return out;
+}
+
+
+/* ---------- 发送文件元数据 ---------- */
+void LogicSystem::FileMeta(
+	shared_ptr<CSession> sess,
+	const short&, const string& dataRaw)
+{
+	/* 1. 解析客户端发来的 JSON ---------------------------- */
+	Json::Value root;  Json::Reader rd;  rd.parse(dataRaw, root);
+
+	/* 2. 把 fromuid 改成真正的登录 uid -------------------- */
+	int32_t  fromuid = sess->GetUserId();   // ★ 核心
+	root["fromuid"] = fromuid;             // 覆盖
+	std::cout << "from id is " << fromuid << std::endl;
+	/* 3. 其它字段照旧 ------------------------------------ */
+	string   file_id = root["file_id"].asString();
+	int64_t  fsize = root["size"].asInt64();
+	int32_t  touid = root["touid"].asInt();
+	string   fname = root["fname"].asString();
+
+	/* 4. 用 root 重新序列化，后面都用这一份 --------------- */
+	string data = root.toStyledString();
+
+	/* ……下面原有的 Redis / FileTransferMgr / ACK 逻辑保持不变 …… */
+
+	/* 存 Redis */
+	string meta_key = "file_meta_" + file_id;
+	RedisMgr::GetInstance()->HSet(meta_key, "size", std::to_string(fsize));
+	RedisMgr::GetInstance()->HSet(meta_key, "fname", fname);
+	RedisMgr::GetInstance()->HSet(meta_key, "from", std::to_string(fromuid));
+	RedisMgr::GetInstance()->HSet(meta_key, "to", std::to_string(touid));
+	RedisMgr::GetInstance()->Set("file_recv_" + file_id, "0");
+
+	/* 转发给接收方（同服在线的话） */
+	if (auto to_sess = UserMgr::GetInstance()->GetSession(touid))
+		to_sess->Send(data, ID_FILE_META_REQ);
+
+	/* 回 ACK 给发送方 */
+	Json::Value rsp;
+	rsp["error"] = Success;
+	rsp["file_id"] = file_id;
+	rsp["recv_size"] = 0;
+	sess->Send(rsp.toStyledString(), ID_FILE_META_RSP);
+
+	std::cout << "[FORWARD] 1031 to uid=" << touid
+		<< " len=" << data.size() << '\n';
+}
+
+
+/* ---------- 追加文件分片 ---------- */
+void LogicSystem::FileChunk(
+	shared_ptr<CSession> sess,
+	const short&, const string& data)
+{
+	try {
+		// 现有 JSON 解析、写盘代码
+		Json::Value root;  Json::Reader rd;  rd.parse(data, root);
+		string file_id = root["file_id"].asString();
+		int64_t offset = root["offset"].asInt64();
+		string bin_b64 = root["data"].asString();
+		string bin = decode64(bin_b64);
+		int32_t touid = root["touid"].asInt();
+
+		int64_t new_off = FileTransferMgr::Inst().append(
+			file_id, offset, bin.data(), bin.size());
+
+		RedisMgr::GetInstance()->Set(
+			"file_recv_" + file_id, std::to_string(new_off));
+
+		// 转发给接收方（同服）
+		auto to_sess = UserMgr::GetInstance()->GetSession(touid);
+		if (to_sess)
+			to_sess->Send(data, ID_FILE_DATA_REQ);
+
+		// ACK
+		Json::Value ack;
+		ack["error"] = Success;
+		ack["file_id"] = file_id;
+		ack["offset"] = new_off;
+		sess->Send(ack.toStyledString(), ID_FILE_DATA_RSP);
+
+		//sess->ResetHeartbeat();
+	}
+	catch (const std::exception& e) {
+		std::cerr << "FileChunk except: " << e.what() << std::endl;
+		return;
+	}
+	
+}
+
+/* ---------- 文件发送完毕 ---------- */
+void LogicSystem::FileFinish(
+	shared_ptr<CSession> sess,
+	const short&, const string& data)
+{
+	Json::Value root;  Json::Reader rd;  rd.parse(data, root);
+	string file_id = root["file_id"].asString();
+	int32_t touid = root["touid"].asInt();
+
+	FileTransferMgr::Inst().finish(file_id);
+	RedisMgr::GetInstance()->Del("file_meta_" + file_id);
+	RedisMgr::GetInstance()->Del("file_recv_" + file_id);
+
+	// 通知接收方
+	auto to_sess = UserMgr::GetInstance()->GetSession(touid);
+	if (to_sess)
+		to_sess->Send(data, ID_FILE_FINISH_REQ);
+
+	Json::Value rsp;
+	rsp["error"] = Success;  rsp["file_id"] = file_id;
+	sess->Send(rsp.toStyledString(), ID_FILE_FINISH_RSP);
+
+	//sess->ResetHeartbeat();
+}
+
+/* ---------- 查询断点 ---------- */
+void LogicSystem::FileResume(
+	shared_ptr<CSession> sess,
+	const short&, const string& data)
+{
+	Json::Value root;  Json::Reader rd;  rd.parse(data, root);
+	string file_id = root["file_id"].asString();
+
+	string cur = RedisMgr::GetInstance()->HGet(
+		"file_recv_" + file_id, "").empty() ?
+		"0" : RedisMgr::GetInstance()->HGet(
+			"file_recv_" + file_id, "");
+
+	Json::Value rsp;
+	rsp["error"] = Success; rsp["file_id"] = file_id;
+	rsp["recv_size"] = std::stoll(cur);
+	sess->Send(rsp.toStyledString(), ID_FILE_RESUME_RSP);
+}
+
+
+
+
 void LogicSystem::PostMsgToQue(shared_ptr < LogicNode> msg) {
 	std::unique_lock<std::mutex> unique_lk(_mutex);
 	_msg_que.push(msg);
@@ -27,6 +182,76 @@ void LogicSystem::PostMsgToQue(shared_ptr < LogicNode> msg) {
 		_consume.notify_one();
 	}
 }
+
+
+void LogicSystem::FileAccept(std::shared_ptr<CSession> sess,
+	const short&, const std::string& data)
+{
+	Json::Value root;  Json::Reader().parse(data, root);
+	std::string fid = root["file_id"].asString();
+	int         action = root["action"].asInt();  // 1 / 0
+
+	/* 根据 file_meta 找到发送者 */
+	std::string fromUidStr =
+		RedisMgr::GetInstance()->HGet("file_meta_" + fid, "from");
+	int fromUid = std::stoi(fromUidStr);
+
+	auto toSess = UserMgr::GetInstance()->GetSession(fromUid);
+	if (toSess) toSess->Send(data, ID_FILE_ACCEPT_RSP);
+}
+
+
+void LogicSystem::ForwardFileMetaRsp(std::shared_ptr<CSession> sess,
+	const short& /*msgId*/,
+	const std::string& body)
+{
+	// 1. 解析出 original sender / receiver
+	Json::Value root;  Json::Reader rd;  rd.parse(body, root);
+	int fromUid = root["fromuid"].asInt();     //  文件发送者
+	int toUid = root["touid"].asInt();       //  文件接收者
+
+	/* 2. 正向只做“透传” —— 发给对方那一端 */
+	int targetUid = (sess->GetUserId() == fromUid) ? toUid : fromUid;
+	auto peerSess = UserMgr::GetInstance()->GetSession(targetUid);
+	if (peerSess)
+		peerSess->Send(body, ID_FILE_META_RSP);   // 1032 原封不动丢过去
+}
+
+
+
+/* ---------- 1032  FileMetaAck ---------- */
+void LogicSystem::FileMetaAck(std::shared_ptr<CSession> sess,
+	const short&, const std::string& data)
+{
+	Json::Value root;  Json::Reader rd;  rd.parse(data, root);
+	int32_t touid = root["fromuid"].asInt();   // 发回原发送者
+
+	if (auto to = UserMgr::GetInstance()->GetSession(touid))
+		to->Send(data, ID_FILE_META_RSP);
+
+	/* 这里不需要再回给接收端，可忽略 */
+	(void)sess;
+}
+
+
+
+/* ---------- 接收方确认 1032 ---------- */
+void LogicSystem::FileMetaRsp(shared_ptr<CSession> sess,
+	const short&, const string& data)
+{
+	Json::Value root; Json::Reader rd; rd.parse(data, root);
+	string file_id = root["file_id"].asString();
+	int32_t fromuid = root["fromuid"].asInt();   // 发送者 uid
+	int32_t touid = root["touid"].asInt();     // =自己
+	int accepted = root["accepted"].asInt();  // 1/0
+
+	if (accepted != 1) return;                   // 拒绝直接丢弃即可
+
+	auto send_sess = UserMgr::GetInstance()->GetSession(fromuid);
+	if (send_sess)  send_sess->Send(data, ID_FILE_META_RSP);
+}
+
+
 
 void LogicSystem::DealMsg() {
 	// 无限循环处理逻辑消息队列中的消息
@@ -120,6 +345,54 @@ void LogicSystem::RegisterCallBacks() {
 
 	_fun_callbacks[ID_HEARTBEAT_REQ] = std::bind(&LogicSystem::Heartbeat,
 		this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3); // ★ 新增
+
+
+	_fun_callbacks[ID_FILE_META_REQ] =
+		std::bind(&LogicSystem::FileMeta, this,
+			std::placeholders::_1,
+			std::placeholders::_2,
+			std::placeholders::_3);
+
+	_fun_callbacks[ID_FILE_DATA_REQ] =
+		std::bind(&LogicSystem::FileChunk, this,
+			std::placeholders::_1,
+			std::placeholders::_2,
+			std::placeholders::_3);
+
+	_fun_callbacks[ID_FILE_FINISH_REQ] =
+		std::bind(&LogicSystem::FileFinish, this,
+			std::placeholders::_1,
+			std::placeholders::_2,
+			std::placeholders::_3);
+
+	_fun_callbacks[ID_FILE_RESUME_REQ] =
+		std::bind(&LogicSystem::FileResume, this,
+			std::placeholders::_1,
+			std::placeholders::_2,
+			std::placeholders::_3);
+
+
+	_fun_callbacks[ID_FILE_ACCEPT_REQ] = std::bind(&LogicSystem::FileAccept, this,
+		std::placeholders::_1,
+		std::placeholders::_2,
+		std::placeholders::_3);
+
+	_fun_callbacks[ID_FILE_META_RSP] = std::bind(&LogicSystem::FileMetaRsp, this,
+		std::placeholders::_1,
+		std::placeholders::_2,
+		std::placeholders::_3);
+
+	_fun_callbacks[ID_FILE_META_RSP] =
+		std::bind(&LogicSystem::FileMetaAck, this,
+			std::placeholders::_1,
+			std::placeholders::_2,
+			std::placeholders::_3);
+
+	_fun_callbacks[ID_FILE_META_RSP] = std::bind(&LogicSystem::ForwardFileMetaRsp,
+		this, std::placeholders::_1,
+		std::placeholders::_2,
+		std::placeholders::_3);
+
 }
 
 
@@ -128,7 +401,7 @@ void LogicSystem::Heartbeat(std::shared_ptr<CSession> session,
 	const short&, const std::string&) {
 	// 回复心跳包
 	session->Send("", ID_HEARTBEAT_RSP);
-	session->ResetHeartbeat();               // ★ 调用会话层复位计时器
+	//session->ResetHeartbeat();               // ★ 调用会话层复位计时器
 }
 
 
@@ -255,6 +528,8 @@ void LogicSystem::LoginHandler(shared_ptr<CSession> session, const short &msg_id
 	RedisMgr::GetInstance()->Set(ipkey, server_name);
 	//uid和session绑定管理,方便以后踢人操作
 	UserMgr::GetInstance()->SetUserSession(uid, session);
+
+
 
 	return;
 }

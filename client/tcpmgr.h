@@ -2,28 +2,30 @@
 #define TCPMGR_H
 
 #include <QTcpSocket>
-#include "singleton.h"
+//#include "singleton.h"
 #include "global.h"
 #include <functional>
 #include <QObject>
 #include "userdata.h"
 #include <QJsonArray>
 #include <QTimer>
+#include "filebubble.h"
+#include <QElapsedTimer>
+#include <QQueue>
+#include <QMutex>
 
-class TcpMgr: public QObject, public Singleton<TcpMgr>,
-        public std::enable_shared_from_this<TcpMgr>
+
+class TcpMgr : public QObject
 {
     Q_OBJECT
 public:
     // 析构函数，销毁对象时清理资源
    ~TcpMgr();
 
+    static TcpMgr* Inst();
 private:
-    // 友元类：允许 Singleton 类访问 TcpMgr 的私有构造函数
-    friend class Singleton<TcpMgr>;
 
-    // 私有构造函数：防止外部直接创建实例，确保单例模式
-    TcpMgr();
+    TcpMgr();                // 返回裸指针给所有模块
 
     // 初始化消息处理函数（handlers）
     void initHandlers();
@@ -57,6 +59,13 @@ private:
     QTimer _hbTimer;          // ★ 新增：心跳发送定时器
     static const int HB_INTERVAL = 30 * 1000; // ★ 30 s
 
+
+    QQueue<QByteArray> _sendQueue;          // 主线程写 socket 用
+    bool               _writing = false;    // 标记是否正在写
+    QMutex             _queueMtx;           // 保护 _sendQueue
+
+public:
+    void enqueuePacket(ReqId id, const QByteArray& body);
 public slots:
     // 用于连接服务器，接收服务器的地址和端口
     void slot_tcp_connect(ServerInfo);
@@ -64,7 +73,30 @@ public slots:
     // 用于发送数据到服务器，传递请求 ID 和数据内容
     void slot_send_data(ReqId reqId, QByteArray data);
 
+    /* ★ 新增：后台线程分片发送 */
+    void slot_send_file(const QString& filePath,
+                        const QString& fileId,
+                        qint64  resumeOffset,
+                        int32_t toUid);
+
+    void slot_continue_write();
 signals:
+    //新增文件发送相关信号
+    void sig_file_meta_rsp(const QString& fileId,
+                           qint64 recvSize,
+                           int   toUid);
+
+    void sig_file_progress(const QString& fileId, qint64 bytes);
+
+    void sig_in_file_meta(QString fileId,int fromUid,qint64 size,QString fname);
+    void sig_in_file_chunk(QString fileId,qint64 offset,QByteArray data);
+    void sig_in_file_finish(QString fileId);
+    /* ★ 新增：发送端收到 1042 后抛这个信号给 UI */
+    void sig_file_accept(const QString& fileId, int action);
+
+
+
+
     // 连接成功时发出的信号，参数表示是否成功
     void sig_con_success(bool bsuccess);
 
@@ -94,6 +126,9 @@ signals:
 
     // 文本聊天消息的信号，传递聊天消息内容
     void sig_text_chat_msg(std::shared_ptr<TextChatMsg> msg);
+
+    void sig_raw_packet(ReqId id, QByteArray body);   // 线程安全写 socket
+
 };
 
 #endif // TCPMGR_H

@@ -43,7 +43,7 @@ public:
     // 构造函数：初始化接收数据长度和对应的消息 ID
     RecvNode(short max_len, short msg_id);
 
-private:
+public:
     short _msg_id; // 消息 ID，用于标识消息类型
 };
 

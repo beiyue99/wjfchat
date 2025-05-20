@@ -22,7 +22,7 @@ SearchList::SearchList(QWidget *parent):QListWidget(parent), _find_dlg(nullptr),
     // 添加默认提示项
     addTipItem();
     // 连接搜索请求的信号
-    connect(TcpMgr::GetInstance().get(), &TcpMgr::sig_user_search, this, &SearchList::slot_user_search);
+    connect(TcpMgr::Inst(), &TcpMgr::sig_user_search, this, &SearchList::slot_user_search);
 }
 
 void SearchList::CloseFindDlg()
@@ -144,7 +144,7 @@ void SearchList::slot_item_clicked(QListWidgetItem *item)
         QByteArray jsonData = doc.toJson(QJsonDocument::Compact);
 
         // 通过TCP发送请求
-        emit TcpMgr::GetInstance()->sig_send_data(ReqId::ID_SEARCH_USER_REQ, jsonData);
+        emit TcpMgr::Inst()->sig_send_data(ReqId::ID_SEARCH_USER_REQ, jsonData);
         return;
     }
 

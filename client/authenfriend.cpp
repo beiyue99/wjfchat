@@ -433,7 +433,7 @@ void AuthenFriend::SlotApplySure()
     QByteArray jsonData = doc.toJson(QJsonDocument::Compact);
 
     // 发送 TCP 请求给聊天服务器，传递好友申请认证的请求数据
-    emit TcpMgr::GetInstance()->sig_send_data(ReqId::ID_AUTH_FRIEND_REQ, jsonData);
+    emit TcpMgr::Inst()->sig_send_data(ReqId::ID_AUTH_FRIEND_REQ, jsonData);
 
     // 隐藏当前认证界面
     this->hide();

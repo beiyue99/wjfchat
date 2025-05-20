@@ -10,7 +10,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 
 #查找和配置外部依赖库或工具
-find_package(Qt5 COMPONENTS Widgets Network REQUIRED)
+find_package(Qt5 COMPONENTS Widgets Network REQUIRED concurrent)
 
 # 添加资源文件
 qt5_add_resources(RESOURCE_FILES resources.qrc)
@@ -63,7 +63,8 @@ add_executable(client
   authenfriend.cpp
   findfaildlg.cpp
   friendinfopage.cpp
-
+  filebubble.cpp
+  recvfilebubble.cpp
 
 
   mainwindow.h
@@ -108,6 +109,8 @@ add_executable(client
   authenfriend.h
   findfaildlg.h
   friendinfopage.h
+  filebubble.h
+  recvfilebubble.h
 
   mainwindow.ui
   logindialog.ui
@@ -138,11 +141,11 @@ add_custom_command(
     ${CMAKE_SOURCE_DIR}/config.ini ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
 )
 # 创建一个自定义目标来确保每次都复制 static 文件夹
-add_custom_target(copy_static ALL
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-    ${CMAKE_SOURCE_DIR}/static ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/static
-)
-add_dependencies(client copy_static)
+#add_custom_target(copy_static ALL
+#    COMMAND ${CMAKE_COMMAND} -E copy_directory
+#    ${CMAKE_SOURCE_DIR}/static ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/static
+#)
+#add_dependencies(client copy_static)
 
 
 # 将 config.ini 文件显式添加到项目中（仅为了 IDE 显示）

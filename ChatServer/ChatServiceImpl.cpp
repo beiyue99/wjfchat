@@ -7,11 +7,96 @@
 #include "RedisMgr.h"
 #include "MysqlMgr.h"
 
+
 // 构造函数（不做额外处理）
 ChatServiceImpl::ChatServiceImpl()
 {
 
 }
+
+
+
+
+
+
+
+grpc::Status ChatServiceImpl::NotifyFileMeta(
+	grpc::ServerContext*,
+	const FileMetaReq* req,
+	FileMetaRsp* rsp)
+{
+	try {
+		string meta_key = "file_meta_" + req->file_id();
+		RedisMgr::GetInstance()->HSet(meta_key, "size",
+			std::to_string(req->file_size()));
+		RedisMgr::GetInstance()->HSet(meta_key, "fname", req->file_name());
+		RedisMgr::GetInstance()->HSet(meta_key, "from",
+			std::to_string(req->fromuid()));
+		RedisMgr::GetInstance()->HSet(meta_key, "to",
+			std::to_string(req->touid()));
+
+		RedisMgr::GetInstance()->Set("file_recv_" + req->file_id(), "0");
+
+		FileTransferMgr::Inst().createOrGet(
+			req->file_id(), "./store/" + req->file_id() + ".tmp",
+			req->file_size());
+
+		rsp->set_error(Success);
+		rsp->set_file_id(req->file_id());
+		rsp->set_recv_size(0);
+		return grpc::Status::OK;
+	}
+	catch (std::exception& e) {
+		rsp->set_error(RPCFailed);
+		return grpc::Status::CANCELLED;
+	}
+}
+
+grpc::Status ChatServiceImpl::NotifyFileChunk(
+	grpc::ServerContext*,
+	const FileChunkReq* req,
+	FileChunkRsp* rsp)
+{
+	try {
+		int64_t new_off = FileTransferMgr::Inst().append(
+			req->file_id(), req->offset(),
+			req->data().data(), req->data().size());
+
+		RedisMgr::GetInstance()->Set(
+			"file_recv_" + req->file_id(), std::to_string(new_off));
+
+		rsp->set_error(Success);
+		rsp->set_file_id(req->file_id());
+		rsp->set_offset(new_off);
+		return grpc::Status::OK;
+	}
+	catch (std::exception& e) {
+		rsp->set_error(RPCFailed);
+		return grpc::Status::CANCELLED;
+	}
+}
+
+grpc::Status ChatServiceImpl::NotifyFileFinish(
+	grpc::ServerContext*,
+	const FileFinishReq* req,
+	FileFinishRsp* rsp)
+{
+	try {
+		FileTransferMgr::Inst().finish(req->file_id());
+		RedisMgr::GetInstance()->Del("file_meta_" + req->file_id());
+		RedisMgr::GetInstance()->Del("file_recv_" + req->file_id());
+
+		rsp->set_error(Success);
+		rsp->set_file_id(req->file_id());
+		return grpc::Status::OK;
+	}
+	catch (std::exception& e) {
+		rsp->set_error(RPCFailed);
+		return grpc::Status::CANCELLED;
+	}
+}
+
+
 
 // 好友申请通知到目标服务器
 // 会通过 GRPC 从其它 ChatServer 发过来

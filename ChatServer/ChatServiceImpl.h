@@ -1,55 +1,74 @@
-#pragma once
+ï»¿#pragma once
 
-// gRPC Ïà¹ØÍ·ÎÄ¼ş
+// gRPC ç›¸å…³å¤´æ–‡ä»¶
 #include <grpcpp/grpcpp.h>
 
-// Proto ÎÄ¼şÉú³ÉµÄ·şÎñ¶¨ÒåºÍÏûÏ¢½á¹¹
+// Proto æ–‡ä»¶ç”Ÿæˆçš„æœåŠ¡å®šä¹‰å’Œæ¶ˆæ¯ç»“æ„
 #include "message.grpc.pb.h"
 #include "message.pb.h"
 
-// Ïß³Ì°²È«Ïà¹Ø
+#include "FileTransferMgr.h"
+// çº¿ç¨‹å®‰å…¨ç›¸å…³
 #include <mutex>
 
-// ÓÃ»§Êı¾İ½á¹¹
+// ç”¨æˆ·æ•°æ®ç»“æ„
 #include "data.h"
 
-// Ê¹ÓÃ gRPC ÖĞµÄ³£ÓÃÀà
+// ä½¿ç”¨ gRPC ä¸­çš„å¸¸ç”¨ç±»
+using grpc::Status;
 using grpc::Server;
 using grpc::ServerBuilder;
 using grpc::ServerContext;
 using grpc::Status;
 
-// Ê¹ÓÃ protobuf ¶¨ÒåµÄÏûÏ¢½á¹¹
+// ä½¿ç”¨ protobuf å®šä¹‰çš„æ¶ˆæ¯ç»“æ„
 using message::AddFriendReq;
 using message::AddFriendRsp;
 
 using message::AuthFriendReq;
 using message::AuthFriendRsp;
 
-using message::ChatService; // ·şÎñ½Ó¿Ú»ùÀà
+// â–¶â–¶ æ–°å¢ 6 è¡Œ
+using message::FileMetaReq;
+using message::FileMetaRsp;
+using message::FileChunkReq;
+using message::FileChunkRsp;
+using message::FileFinishReq;
+using message::FileFinishRsp;
+
 using message::TextChatMsgReq;
 using message::TextChatMsgRsp;
 using message::TextChatData;
 
-// ChatServiceImpl ÊÇ ChatServer ÉÏÕæÕı´¦ÀíÒµÎñÂß¼­µÄ gRPC ·şÎñÊµÏÖÀà
+using message::ChatService; // æœåŠ¡æ¥å£åŸºç±»
+
+
+// ChatServiceImpl æ˜¯ ChatServer ä¸ŠçœŸæ­£å¤„ç†ä¸šåŠ¡é€»è¾‘çš„ gRPC æœåŠ¡å®ç°ç±»
 class ChatServiceImpl final : public ChatService::Service
 {
 public:
-    // ¹¹Ôìº¯Êı£¬¿ÉÒÔÔÚÆäÖĞ³õÊ¼»¯ËùĞè×ÊÔ´£¨±ÈÈçÈÕÖ¾¡¢Êı¾İ¿âµÈ£©
+    // æ„é€ å‡½æ•°ï¼Œå¯ä»¥åœ¨å…¶ä¸­åˆå§‹åŒ–æ‰€éœ€èµ„æºï¼ˆæ¯”å¦‚æ—¥å¿—ã€æ•°æ®åº“ç­‰ï¼‰
     ChatServiceImpl();
 
-    // ºÃÓÑÉêÇëÍ¨Öªµ½Ä¿±ê·şÎñÆ÷
+    // å¥½å‹ç”³è¯·é€šçŸ¥åˆ°ç›®æ ‡æœåŠ¡å™¨
     Status NotifyAddFriend(ServerContext* context, const AddFriendReq* request,
         AddFriendRsp* reply) override;
 
-	// Í¨ÖªÄ¿±ê·şÎñÆ÷ºÃÓÑÉêÇëÒÑÑéÖ¤
+	// é€šçŸ¥ç›®æ ‡æœåŠ¡å™¨å¥½å‹ç”³è¯·å·²éªŒè¯
     Status NotifyAuthFriend(ServerContext* context,
         const AuthFriendReq* request, AuthFriendRsp* response) override;
 
-    // ÎÄ±¾ÁÄÌìÏûÏ¢Í¨ÖªµÄ RPC ÊµÏÖ
+    // æ–‡æœ¬èŠå¤©æ¶ˆæ¯é€šçŸ¥çš„ RPC å®ç°
     Status NotifyTextChatMsg(::grpc::ServerContext* context,
         const TextChatMsgReq* request, TextChatMsgRsp* response) override;
 
-    // »ñÈ¡ÓÃ»§»ù±¾ĞÅÏ¢£¨ÓÅÏÈ²é Redis£¬Î´ÃüÖĞÔò²é MySQL£©
+
+    // ====== æ–°å¢ ======
+    grpc::Status NotifyFileMeta(grpc::ServerContext*,const FileMetaReq*, FileMetaRsp*)  override;
+    grpc::Status NotifyFileChunk(grpc::ServerContext*,const FileChunkReq*,FileChunkRsp*) override;
+    grpc::Status NotifyFileFinish(grpc::ServerContext*, const FileFinishReq*,FileFinishRsp*)override;
+
+
+    // è·å–ç”¨æˆ·åŸºæœ¬ä¿¡æ¯ï¼ˆä¼˜å…ˆæŸ¥ Redisï¼Œæœªå‘½ä¸­åˆ™æŸ¥ MySQLï¼‰
     bool GetBaseInfo(std::string base_key, int uid, std::shared_ptr<UserInfo>& userinfo);
 };

@@ -30,6 +30,14 @@ using message::TextChatMsgReq;
 using message::TextChatMsgRsp;
 using message::TextChatData;
 
+using message::FileMetaReq;
+using message::FileMetaRsp;
+using message::FileChunkReq;
+using message::FileChunkRsp;
+using message::FileFinishReq;
+using message::FileFinishRsp;
+
+
 /*
  * ChatConPool 是一个 gRPC 客户端连接池类，负责管理一组 ChatService 的 Stub 连接
  * 实现连接复用，减少创建连接的性能开销，支持多线程安全访问
@@ -118,6 +126,13 @@ public:
 	// 聊天消息转发到目标服务器
     TextChatMsgRsp NotifyTextChatMsg(std::string server_ip, const TextChatMsgReq& req, const Json::Value& rtvalue);
 
+
+    FileMetaRsp   NotifyFileMeta(std::string server_ip,
+        const FileMetaReq& req);
+    FileChunkRsp  NotifyFileChunk(std::string server_ip,
+        const FileChunkReq& req);
+    FileFinishRsp NotifyFileFinish(std::string server_ip,
+        const FileFinishReq& req);
 private:
     // 构造函数私有化，由 Singleton 管理对象唯一性
     ChatGrpcClient();

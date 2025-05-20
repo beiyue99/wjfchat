@@ -28,7 +28,7 @@ class CSession : public std::enable_shared_from_this<CSession>
 public:
 
     void ResetHeartbeat();           // ★ 新增：公开给 LogicSystem
-
+    CServer* GetServer() const { return _server; }   // ★ 新增
 
     // 构造函数，传入 io_context 和服务器指针
     CSession(boost::asio::io_context& io_context, CServer* server);

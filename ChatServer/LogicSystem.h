@@ -69,6 +69,20 @@ private:
 	bool GetFriendList(int self_id, std::vector<std::shared_ptr<UserInfo>>& user_list);
 
 
+	// ========= 文件 =========
+	void FileMeta(std::shared_ptr<CSession>, const short&, const std::string&);
+	void FileChunk(std::shared_ptr<CSession>, const short&, const std::string&);
+	void FileFinish(std::shared_ptr<CSession>, const short&, const std::string&);
+	void FileResume(std::shared_ptr<CSession>, const short&, const std::string&);
+	void FileMetaRsp(shared_ptr<CSession> sess, const short&, const string& data);
+	void FileMetaAck(std::shared_ptr<CSession> sess, const short&, const std::string& data);
+	/* 1032 透传：接收方 → 服务器 → 发送方 */
+	void ForwardFileMetaRsp(std::shared_ptr<CSession> sess,
+		const short& /*msgId*/,
+		const std::string& body);
+
+
+	void FileAccept(std::shared_ptr<CSession>, const short&, const std::string&);
 	void Heartbeat(std::shared_ptr<CSession> session,
 		const short& msg_id, const std::string& msg_data); // ★ 新增
 private:
